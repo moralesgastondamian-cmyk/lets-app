@@ -612,7 +612,7 @@ td{padding:9px 12px;vertical-align:middle}
 <div class="page" id="page-historial">
   <div class="card">
     <div class="card-title">Historial de pagos</div>
-    <div class="impbar"><span style="font-size:12px;font-weight:600;color:var(--muted)">💾 Backup:</span><button class="btn btn-ghost btn-sm" onclick="exportPagos()">⬇ Exportar</button><button class="btn btn-ghost btn-sm" onclick="importPagos()">⬆ Importar</button><span style="font-size:11px;color:var(--muted)">Para migrar pagos entre versiones</span></div>
+    <div class="impbar"><span style="font-size:12px;font-weight:600;color:var(--muted)">💾 Backup:</span><button class="btn btn-ghost btn-sm" onclick="exportPagos()">⬇ Exportar</button><button class="btn btn-ghost btn-sm" onclick="importPagos()">⬆ Importar</button><button class="btn btn-ghost btn-sm" onclick="syncAllToFirebase()">☁️ Sincronizar todo</button><span style="font-size:11px;color:var(--muted)">Forzar sync a Firebase</span></div>
     <div class="search-bar">
       <input type="text" id="searchHist" placeholder="Buscar por alumno, curso, concepto..." oninput="renderHistorial()" style="flex:2">
       <select id="filterMes" onchange="renderHistorial()" style="width:140px">
@@ -2809,6 +2809,17 @@ function exportPagos(){
   const a=document.createElement('a');a.href='data:application/json;charset=utf-8,'+encodeURIComponent(d);
   a.download='pagos_backup_'+today()+'.json';a.click();
 }
+
+function syncAllToFirebase() {
+  if(!window.FS){ alert('Firebase no disponible'); return; }
+  if(!pagos.length){ alert('No hay pagos para sincronizar'); return; }
+  if(!confirm(`¿Sincronizar ${pagos.length} pagos a Firebase?\nEsto los hace visibles en todos los dispositivos.`)) return;
+  showSyncStatus('syncing');
+  Promise.all(pagos.map(p => FS.set('pagos', String(p.id), p)))
+    .then(() => { showSyncStatus('ok'); alert(`✅ ${pagos.length} pagos sincronizados a Firebase.\nYa podés verlos desde cualquier dispositivo.`); })
+    .catch(e => { showSyncStatus('error'); alert('Error: ' + e.message); });
+}
+
 function importPagos(){
   const inp=document.createElement('input');inp.type='file';inp.accept='.json';
   inp.onchange=e=>{
@@ -2821,13 +2832,16 @@ function importPagos(){
         const nuevos=d.filter(p=>!ids.has(p.id));pagos=[...ex,...nuevos].sort((a,b)=>a.id-b.id);
         if(pagos.length)pagoCounter=Math.max(...pagos.map(p=>p.id))+1;
         saveJ(STORAGE_KEY,pagos);
-        // Sync all imported pagos to Firebase
-        if(window.FS && nuevos.length) {
-          Promise.all(nuevos.map(p=>FS.set('pagos', String(p.id), p)))
-            .then(()=>showSyncStatus('ok'));
+        // Sync ALL pagos to Firebase (not just nuevos — ensures phone sees everything)
+        if(window.FS) {
+          showSyncStatus('syncing');
+          Promise.all(pagos.map(p=>FS.set('pagos', String(p.id), p)))
+            .then(()=>{ showSyncStatus('ok'); alert(`✅ ${nuevos.length} pagos nuevos importados.\n${pagos.length} pagos sincronizados a Firebase.\nYa podés verlos desde cualquier dispositivo.`); })
+            .catch(e=>{ showSyncStatus('error'); alert(`✅ ${nuevos.length} pagos importados localmente.\n⚠️ Error al sincronizar con Firebase: ${e.message}`); });
+        } else {
+          alert(`✅ ${nuevos.length} pagos importados, ${d.length-nuevos.length} ya existían`);
         }
         renderDashboard();renderHistorial();
-        alert(`✅ ${nuevos.length} pagos importados, ${d.length-nuevos.length} ya existían`);
       }catch(err){alert('❌ Error: '+err.message);}
     };r.readAsText(file);
   };inp.click();
