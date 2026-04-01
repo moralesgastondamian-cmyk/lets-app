@@ -279,6 +279,20 @@ td{padding:9px 12px;vertical-align:middle}
 .ctotal{display:flex;justify-content:space-between;padding:9px 0;font-weight:700;font-size:15px;color:#0f1f3d;border-top:2px solid #0f1f3d;margin-top:5px}
 .nolab{display:inline-flex;align-items:center;gap:5px;background:#fde8e5;color:#7a1a10;padding:3px 9px;border-radius:20px;font-size:11px;font-weight:600;margin:2px}
 .impbar{display:flex;gap:8px;align-items:center;background:#f0ece3;border-radius:8px;padding:10px 14px;margin-bottom:14px;flex-wrap:wrap}
+
+/* WHATSAPP */
+.btn-wa{background:#25D366;color:#fff}.btn-wa:hover{filter:brightness(.9)}
+.wa-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:2000;align-items:center;justify-content:center;padding:16px}
+.wa-overlay.open{display:flex}
+.wa-box{background:#fff;border-radius:14px;padding:26px;max-width:440px;width:100%;box-shadow:0 20px 60px rgba(0,0,0,.25);position:relative;max-height:90vh;overflow-y:auto}
+.wa-box h3{font-family:'DM Serif Display',serif;color:var(--navy);font-size:17px;margin-bottom:3px}
+.wa-box .sub{font-size:12px;color:var(--muted);margin-bottom:14px}
+.wa-close{position:absolute;top:10px;right:14px;background:none;border:none;font-size:20px;cursor:pointer;color:var(--muted);line-height:1}
+.wa-preview{background:#e5ddd5;border-radius:8px;padding:14px;font-size:12px;white-space:pre-line;line-height:1.55;max-height:200px;overflow-y:auto;margin-bottom:14px;border:1px solid #d5cec5;font-family:'DM Sans',sans-serif}
+.wa-phone-row{display:flex;gap:8px;align-items:center;margin-bottom:10px}
+.wa-phone-row input{flex:1}
+.wa-saved{font-size:10px;color:var(--green);font-weight:700;white-space:nowrap}
+.wa-btns{display:flex;gap:8px;flex-wrap:wrap}
 </style>
 </head>
 <body>
@@ -638,7 +652,28 @@ td{padding:9px 12px;vertical-align:middle}
     </div>
     <div class="btn-row" style="justify-content:center;margin-top:14px">
       <button class="btn btn-accent" onclick="downloadPDF()">⬇ Descargar PDF</button>
-      <button class="btn btn-ghost" onclick="sharePDF()">📤 Compartir</button>
+      <button class="btn btn-wa" onclick="openWA()">📲 Enviar por WhatsApp</button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ WHATSAPP MODAL ═══ -->
+<div class="wa-overlay" id="waOverlay" onclick="if(event.target===this)closeWA()">
+  <div class="wa-box">
+    <button class="wa-close" onclick="closeWA()">✕</button>
+    <h3>📲 Enviar comprobante por WhatsApp</h3>
+    <div class="sub">Revisá el mensaje y elegí cómo enviarlo</div>
+    <div class="section-label">Vista previa</div>
+    <div class="wa-preview" id="waPreview"></div>
+    <div class="section-label">Número del responsable</div>
+    <div class="wa-phone-row">
+      <input type="tel" id="waPhone" placeholder="Ej: 1154871234" style="font-size:13px">
+      <span class="wa-saved" id="waSaved" style="display:none">✓ de ficha</span>
+    </div>
+    <div style="font-size:10px;color:var(--muted);margin-bottom:12px">El número se toma de la ficha del alumno. Si lo cambiás, queda guardado.</div>
+    <div class="wa-btns">
+      <button class="btn btn-wa" onclick="sendWA(true)">📲 Enviar al número</button>
+      <button class="btn btn-ghost" onclick="sendWA(false)">📋 Abrir sin número</button>
     </div>
   </div>
 </div>
@@ -1796,7 +1831,9 @@ function registrarPago() {
   $('reciboCard').scrollIntoView({behavior:'smooth',block:'start'});
 }
 
+let _waPago = null;
 function showReceipt(p) {
+  _waPago = p;
   $('r_num').textContent=`Recibo N° ${p.id}`;
   $('r_fecha').textContent=p.fecha;$('r_alumno').textContent=p.alumnoNombre;
   $('r_curso').textContent=p.curso;
@@ -1812,7 +1849,7 @@ function showReceipt(p) {
 function downloadPDF() {
   const {jsPDF}=window.jspdf;
   const doc=new jsPDF({unit:'mm',format:'a6',orientation:'portrait'});
-  const p=pagos[pagos.length-1];if(!p)return;
+  const p=_waPago||pagos[pagos.length-1];if(!p)return;
   doc.setFillColor(15,31,61);doc.rect(0,0,105,148,'F');
   doc.setFillColor(255,255,255);doc.rect(6,6,93,136,'F');
   doc.setFont('helvetica','bold');doc.setFontSize(16);doc.setTextColor(15,31,61);
@@ -1843,7 +1880,104 @@ function downloadPDF() {
   doc.save(`Recibo_${p.id}_${p.alumnoNombre.replace(/,/g,'').replace(/ /g,'_')}.pdf`);
 }
 
-async function sharePDF(){if(navigator.share){alert('Descargá el PDF primero con "Descargar PDF" y compartilo desde tus archivos.');}else{downloadPDF();}}
+// ── WHATSAPP ─────────────────────────────────────
+
+function fmtWA(p) {
+  const a = ALUMNOS_PRELOAD.find(x=>x.id===p.alumnoId);
+  let m = `🎓 *Let's · Innovation English Institute*\n`;
+  m += `━━━━━━━━━━━━━━━━━━\n`;
+  m += `📄 *Comprobante de Pago N° ${p.id}*\n\n`;
+  m += `📅 Fecha: ${p.fecha}\n`;
+  m += `👤 Alumno: ${p.alumnoNombre}\n`;
+  m += `📚 Curso: ${p.curso}\n`;
+  m += `📌 Concepto: ${p.concepto}${p.mes ? ' · '+p.mes : ''}\n`;
+  m += `💳 Forma: ${p.forma==='efectivo'?'Efectivo':'Transferencia'}\n`;
+  if(p.descEf>0) m += `🏷 Dto. efectivo: −${fmt(p.descEf)}\n`;
+  if(p.descFam>0) m += `🏷 Dto. familiar: −${fmt(p.descFam)}\n`;
+  if(p.descBonif>0) m += `🏷 Bonificación: −${fmt(p.descBonif)}\n`;
+  m += `\n💰 *TOTAL ABONADO: ${fmt(p.total)}*\n`;
+  m += `━━━━━━━━━━━━━━━━━━\n`;
+  m += `✅ Este mensaje es válido como comprobante.\n`;
+  m += `¡Gracias por tu confianza! 🙌`;
+  return m;
+}
+
+function normalizePhone(raw) {
+  if(!raw) return '';
+  let p = raw.replace(/[\s\-\(\)\.]/g, '');
+  // Remove leading 0 (arg local convention)
+  if(p.startsWith('0')) p = p.substring(1);
+  // Remove 15 prefix (old mobile convention)
+  if(p.startsWith('15') && p.length <= 10) p = p.substring(2);
+  // Ensure country code
+  if(!p.startsWith('54')) p = '54' + p;
+  // For arg mobile: insert 9 after 54 if not present (required by wa.me)
+  if(p.startsWith('54') && !p.startsWith('549') && p.length >= 12) p = '549' + p.substring(2);
+  return p;
+}
+
+function openWA() {
+  const p = _waPago;
+  if(!p) return;
+  $('waPreview').textContent = fmtWA(p);
+  // Pre-fill phone from student record
+  const a = ALUMNOS_PRELOAD.find(x=>x.id===p.alumnoId);
+  const cel = a ? (a.celular||'') : '';
+  if(cel) {
+    $('waPhone').value = cel;
+    $('waSaved').style.display = 'inline';
+  } else {
+    $('waPhone').value = '';
+    $('waSaved').style.display = 'none';
+  }
+  $('waOverlay').classList.add('open');
+}
+
+function closeWA() { $('waOverlay').classList.remove('open'); }
+
+function sendWA(withNum) {
+  const p = _waPago;
+  if(!p) return;
+  const msg = encodeURIComponent(fmtWA(p));
+  let phone = $('waPhone').value.trim();
+  if(withNum && phone) {
+    phone = normalizePhone(phone);
+    // Save back to student record if changed
+    const a = ALUMNOS_PRELOAD.find(x=>x.id===p.alumnoId);
+    if(a && a.celular !== $('waPhone').value.trim()) {
+      a.celular = $('waPhone').value.trim();
+      // Persist if custom alumno
+      const ci = alumnosCustom.findIndex(c=>c.id===a.id);
+      if(ci>=0) { alumnosCustom[ci].celular = a.celular; saveJ(ALUMNOS_KEY, alumnosCustom); }
+    }
+    window.open(`https://wa.me/${phone}?text=${msg}`, '_blank');
+  } else {
+    window.open(`https://wa.me/?text=${msg}`, '_blank');
+  }
+  closeWA();
+}
+
+function sendMorosoWA(alumnoId, mes, monto) {
+  const a = ALUMNOS_PRELOAD.find(x=>x.id===alumnoId);
+  if(!a) return;
+  let m = `Hola${a.responsable ? ' *'+a.responsable.split('/')[0].trim()+'*' : ''}! 👋\n\n`;
+  m += `Te escribimos desde *Let's · Innovation English Institute* `;
+  m += `para recordarte que la cuota de *${mes} 2026* `;
+  m += `de *${a.nombre} ${a.apellido}* se encuentra pendiente.\n\n`;
+  m += `💰 Monto: *${fmt(monto)}* (transferencia)\n`;
+  m += `📅 Vencimiento: día 10 del mes\n\n`;
+  m += `Podés abonar por transferencia o en efectivo.\n`;
+  m += `Cualquier consulta no dudes en escribirnos.\n\n`;
+  m += `¡Gracias! 🙌\n`;
+  m += `_Let's · Bernal_`;
+  const msg = encodeURIComponent(m);
+  const phone = a.celular ? normalizePhone(a.celular) : '';
+  if(phone) {
+    window.open(`https://wa.me/${phone}?text=${msg}`, '_blank');
+  } else {
+    window.open(`https://wa.me/?text=${msg}`, '_blank');
+  }
+}
 
 function limpiarForm(){
   ['buscarAlumno','alumnoNombre','alumnoId','alumnoCurso','alumnoDesc','observaciones'].forEach(id=>{const el=$(id);if(el)el.value='';});
@@ -1874,13 +2008,11 @@ function renderHistorial() {
       <td style="white-space:nowrap">${p.mes||'—'}</td>
       <td style="white-space:nowrap"><span class="pill ${p.forma==='efectivo'?'pill-ef':'pill-tr'}" style="white-space:nowrap">${p.forma==='efectivo'?'💵 Efectivo':'🏦 Transf.'}</span></td>
       <td style="white-space:nowrap"><strong>${fmt(p.total)}</strong></td>
-       <td style="white-space:nowrap;min-width:110px">
-         <div style="display:flex;gap:4px;align-items:center;flex-wrap:nowrap">
-           <button class="btn btn-ghost btn-sm" onclick="verRecibo(${p.id})" title="Ver recibo">🧾</button>
-           <button class="btn btn-ghost btn-sm" onclick="editarPago(${p.id})" title="Editar">✏️</button>
-           ${canDelete()?`<button class="btn btn-danger btn-sm" onclick="eliminarPago(${p.id})" title="Eliminar">🗑</button>`:''}
-         </div>
-       </td>
+      <td>
+        <button class="btn btn-ghost btn-sm" onclick="verRecibo(${p.id})" title="Ver recibo">🧾</button>
+        <button class="btn btn-ghost btn-sm" onclick="editarPago(${p.id})" style="margin-left:3px" title="Editar">✏️</button>
+        <button class="btn btn-danger btn-sm" onclick="eliminarPago(${p.id})" style="margin-left:3px" title="Eliminar">🗑</button>
+      </td>
     </tr>`).join('');
   $('histTotal').textContent=`${f.length} registros · Total: ${fmt(total)}`;
 }
@@ -2016,8 +2148,11 @@ function renderMorosos(){
     return `<div class="moroso-card">
       <div><div class="moroso-name">${a.apellido}, ${a.nombre}</div>
       <div class="moroso-info">${a.curso}${a.familiar?' · 🏷 Fam':''}</div></div>
-      <div style="text-align:right"><div class="moroso-amount">${fmt(t.transferencia)}</div>
-      <div style="font-size:10px;color:var(--muted)">cuota estimada</div></div>
+      <div style="display:flex;align-items:center;gap:10px">
+        <div style="text-align:right"><div class="moroso-amount">${fmt(t.transferencia)}</div>
+        <div style="font-size:10px;color:var(--muted)">cuota estimada</div></div>
+        <button class="btn btn-wa btn-sm" onclick="sendMorosoWA(${a.id},'${mes}',${t.transferencia})" title="Recordatorio WhatsApp">📲</button>
+      </div>
     </div>`;
   }).join('');
 }
