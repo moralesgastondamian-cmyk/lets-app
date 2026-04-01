@@ -1874,11 +1874,13 @@ function renderHistorial() {
       <td style="white-space:nowrap">${p.mes||'—'}</td>
       <td style="white-space:nowrap"><span class="pill ${p.forma==='efectivo'?'pill-ef':'pill-tr'}" style="white-space:nowrap">${p.forma==='efectivo'?'💵 Efectivo':'🏦 Transf.'}</span></td>
       <td style="white-space:nowrap"><strong>${fmt(p.total)}</strong></td>
-      <td>
-        <button class="btn btn-ghost btn-sm" onclick="verRecibo(${p.id})" title="Ver recibo">🧾</button>
-        <button class="btn btn-ghost btn-sm" onclick="editarPago(${p.id})" style="margin-left:3px" title="Editar">✏️</button>
-        <button class="btn btn-danger btn-sm" onclick="eliminarPago(${p.id})" style="margin-left:3px" title="Eliminar">🗑</button>
-      </td>
+       <td style="white-space:nowrap;min-width:110px">
+         <div style="display:flex;gap:4px;align-items:center;flex-wrap:nowrap">
+           <button class="btn btn-ghost btn-sm" onclick="verRecibo(${p.id})" title="Ver recibo">🧾</button>
+           <button class="btn btn-ghost btn-sm" onclick="editarPago(${p.id})" title="Editar">✏️</button>
+           ${canDelete()?`<button class="btn btn-danger btn-sm" onclick="eliminarPago(${p.id})" title="Eliminar">🗑</button>`:''}
+         </div>
+       </td>
     </tr>`).join('');
   $('histTotal').textContent=`${f.length} registros · Total: ${fmt(total)}`;
 }
