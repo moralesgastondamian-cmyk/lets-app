@@ -137,10 +137,9 @@ select:focus,input:focus{border-color:var(--sky)}
 
 /* TABLE */
 .tbl-wrap{overflow-x:auto;border-radius:8px;border:1px solid var(--border)}
-tr.row-efectivo{background:#E2EFDA!important}tr.row-efectivo:hover{background:#d0e8c4!important}
-tr.row-efectivo td{color:#375623}
-tr.row-transf{background:#EAD1F5!important}tr.row-transf:hover{background:#dbbff0!important}
-tr.row-transf td{color:#4B1A7A}
+/* forma pills with color */
+.pill-ef{background:#d0e8c4;color:#375623;font-size:13px;padding:4px 12px}
+.pill-tr{background:#dbbff0;color:#4B1A7A;font-size:13px;padding:4px 12px}
 table{width:100%;border-collapse:collapse;font-size:12px}
 thead tr{background:var(--navy);color:#fff}
 thead th{padding:10px 12px;text-align:left;font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.5px;white-space:nowrap}
@@ -667,7 +666,7 @@ td{padding:9px 12px;vertical-align:middle}
     </div>
     <div class="tbl-wrap">
       <table>
-        <thead><tr><th>#</th><th>Fecha</th><th>Alumno</th><th>Curso</th><th>Concepto</th><th>Mes</th><th>Forma</th><th>Total $</th><th>Acciones</th></tr></thead>
+        <thead><tr><th>#</th><th>Fecha</th><th>Alumno</th><th>Curso</th><th>Concepto</th><th>Mes</th><th>Forma</th><th>Total $</th><th style="min-width:100px">Acciones</th></tr></thead>
         <tbody id="historialBody"></tbody>
       </table>
     </div>
@@ -1866,13 +1865,13 @@ function renderHistorial() {
   const body=$('historialBody');
   if(!f.length){body.innerHTML=`<tr><td colspan="9" style="text-align:center;padding:24px;color:var(--muted)">Sin registros</td></tr>`;$('histTotal').textContent='';return;}
   body.innerHTML=f.map(p=>`
-    <tr class="${p.forma==='efectivo'?'row-efectivo':'row-transf'}">
-      <td><span style="font-size:10px;opacity:.7">${p.id}</span></td>
+    <tr>
+      <td><span style="font-size:10px;color:var(--muted)">${p.id}</span></td>
       <td>${p.fecha}</td><td><strong>${p.alumnoNombre}</strong></td>
-      <td style="font-size:11px;opacity:.8">${p.curso.length>22?p.curso.substring(0,22)+'…':p.curso}</td>
+      <td style="font-size:11px;color:var(--muted)">${p.curso.length>22?p.curso.substring(0,22)+'…':p.curso}</td>
       <td>${p.concepto}${p.bonif&&p.bonif.tipo!=='ninguna'?` <span style="font-size:10px;font-weight:700">[${p.bonif.tipo==='beca'?'BECA':p.bonif.tipo==='porc'?'-'+p.bonif.val+'%':'-'+fmt(p.bonif.val)}]</span>`:''}</td>
       <td>${p.mes||'—'}</td>
-      <td><strong style="font-size:11px">${p.forma==='efectivo'?'💵 Efectivo':'🏦 Transf.'}</strong></td>
+      <td><span class="pill ${p.forma==='efectivo'?'pill-ef':'pill-tr'}">${p.forma==='efectivo'?'💵 Efectivo':'🏦 Transf.'}</span></td>
       <td><strong>${fmt(p.total)}</strong></td>
       <td>
         <button class="btn btn-ghost btn-sm" onclick="verRecibo(${p.id})" title="Ver recibo">🧾</button>
