@@ -67,6 +67,7 @@
 </script>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 <style>
 :root{
   --navy:#0f1f3d;--blue:#1a3a6b;--sky:#2e75b6;--accent:#e8a020;
@@ -288,11 +289,16 @@ td{padding:9px 12px;vertical-align:middle}
 .wa-box h3{font-family:'DM Serif Display',serif;color:var(--navy);font-size:17px;margin-bottom:3px}
 .wa-box .sub{font-size:12px;color:var(--muted);margin-bottom:14px}
 .wa-close{position:absolute;top:10px;right:14px;background:none;border:none;font-size:20px;cursor:pointer;color:var(--muted);line-height:1}
-.wa-preview{background:#e5ddd5;border-radius:8px;padding:14px;font-size:12px;white-space:pre-line;line-height:1.55;max-height:200px;overflow-y:auto;margin-bottom:14px;border:1px solid #d5cec5;font-family:'DM Sans',sans-serif}
+.wa-img-wrap{background:#e5ddd5;border-radius:10px;padding:14px;margin-bottom:14px;text-align:center;min-height:80px;display:flex;align-items:center;justify-content:center}
+.wa-img-wrap img{max-width:100%;border-radius:6px;box-shadow:0 2px 12px rgba(0,0,0,.15)}
+.wa-img-wrap .wa-loading{color:var(--muted);font-size:13px;display:flex;align-items:center;gap:8px}
 .wa-phone-row{display:flex;gap:8px;align-items:center;margin-bottom:10px}
 .wa-phone-row input{flex:1}
 .wa-saved{font-size:10px;color:var(--green);font-weight:700;white-space:nowrap}
 .wa-btns{display:flex;gap:8px;flex-wrap:wrap}
+.wa-toggle{display:flex;gap:2px;background:var(--sand);border-radius:6px;padding:2px;margin-bottom:14px}
+.wa-toggle button{flex:1;padding:6px 10px;border:none;border-radius:5px;font-size:11px;font-weight:600;cursor:pointer;background:transparent;color:var(--muted);font-family:'DM Sans',sans-serif}
+.wa-toggle button.active{background:#fff;color:var(--navy);box-shadow:0 1px 3px rgba(0,0,0,.1)}
 </style>
 </head>
 <body>
@@ -662,18 +668,21 @@ td{padding:9px 12px;vertical-align:middle}
   <div class="wa-box">
     <button class="wa-close" onclick="closeWA()">✕</button>
     <h3>📲 Enviar comprobante por WhatsApp</h3>
-    <div class="sub">Revisá el mensaje y elegí cómo enviarlo</div>
+    <div class="sub">Se genera una imagen del recibo para compartir</div>
     <div class="section-label">Vista previa</div>
-    <div class="wa-preview" id="waPreview"></div>
+    <div class="wa-img-wrap" id="waImgWrap">
+      <div class="wa-loading" id="waLoading">⏳ Generando imagen...</div>
+      <img id="waImg" style="display:none" alt="Comprobante">
+    </div>
     <div class="section-label">Número del responsable</div>
     <div class="wa-phone-row">
       <input type="tel" id="waPhone" placeholder="Ej: 1154871234" style="font-size:13px">
       <span class="wa-saved" id="waSaved" style="display:none">✓ de ficha</span>
     </div>
-    <div style="font-size:10px;color:var(--muted);margin-bottom:12px">El número se toma de la ficha del alumno. Si lo cambiás, queda guardado.</div>
+    <div style="font-size:10px;color:var(--muted);margin-bottom:12px">El número se toma de la ficha del alumno. En celular se comparte la imagen directo a WhatsApp.</div>
     <div class="wa-btns">
-      <button class="btn btn-wa" onclick="sendWA(true)">📲 Enviar al número</button>
-      <button class="btn btn-ghost" onclick="sendWA(false)">📋 Abrir sin número</button>
+      <button class="btn btn-wa" onclick="sendWA(true)" id="waBtnSend">📲 Compartir imagen</button>
+      <button class="btn btn-ghost" onclick="sendWA(false)">💬 Solo texto</button>
     </div>
   </div>
 </div>
@@ -701,7 +710,7 @@ td{padding:9px 12px;vertical-align:middle}
     </div>
     <div class="tbl-wrap">
       <table>
-        <thead><tr><th>#</th><th>Fecha</th><th>Alumno</th><th>Curso</th><th>Concepto</th><th>Mes</th><th>Forma</th><th>Total $</th><th style="min-width:100px">Acciones</th></tr></thead>
+        <thead><tr><th>#</th><th>Fecha</th><th>Alumno</th><th>Curso</th><th>Concepto</th><th>Mes</th><th>Forma</th><th>Total $</th><th style="min-width:85px">Acciones</th></tr></thead>
         <tbody id="historialBody"></tbody>
       </table>
     </div>
@@ -1881,6 +1890,7 @@ function downloadPDF() {
 }
 
 // ── WHATSAPP ─────────────────────────────────────
+let _waBlob = null; // generated receipt image blob
 
 function fmtWA(p) {
   const a = ALUMNOS_PRELOAD.find(x=>x.id===p.alumnoId);
@@ -1905,54 +1915,111 @@ function fmtWA(p) {
 function normalizePhone(raw) {
   if(!raw) return '';
   let p = raw.replace(/[\s\-\(\)\.]/g, '');
-  // Remove leading 0 (arg local convention)
   if(p.startsWith('0')) p = p.substring(1);
-  // Remove 15 prefix (old mobile convention)
   if(p.startsWith('15') && p.length <= 10) p = p.substring(2);
-  // Ensure country code
   if(!p.startsWith('54')) p = '54' + p;
-  // For arg mobile: insert 9 after 54 if not present (required by wa.me)
   if(p.startsWith('54') && !p.startsWith('549') && p.length >= 12) p = '549' + p.substring(2);
   return p;
 }
 
-function openWA() {
+async function openWA() {
   const p = _waPago;
   if(!p) return;
-  $('waPreview').textContent = fmtWA(p);
-  // Pre-fill phone from student record
+  _waBlob = null;
+
+  // Pre-fill phone
   const a = ALUMNOS_PRELOAD.find(x=>x.id===p.alumnoId);
   const cel = a ? (a.celular||'') : '';
-  if(cel) {
-    $('waPhone').value = cel;
-    $('waSaved').style.display = 'inline';
-  } else {
-    $('waPhone').value = '';
-    $('waSaved').style.display = 'none';
-  }
+  $('waPhone').value = cel;
+  $('waSaved').style.display = cel ? 'inline' : 'none';
+
+  // Show modal with loading state
+  $('waLoading').style.display = 'flex';
+  $('waImg').style.display = 'none';
+  $('waBtnSend').disabled = true;
+  $('waBtnSend').textContent = '⏳ Generando...';
   $('waOverlay').classList.add('open');
+
+  // Generate image from receipt
+  try {
+    const el = document.getElementById('receiptContent');
+    const canvas = await html2canvas(el, {
+      scale: 2,
+      backgroundColor: '#ffffff',
+      useCORS: true,
+      logging: false
+    });
+    canvas.toBlob(blob => {
+      _waBlob = blob;
+      const url = URL.createObjectURL(blob);
+      $('waImg').src = url;
+      $('waImg').style.display = 'block';
+      $('waLoading').style.display = 'none';
+      $('waBtnSend').disabled = false;
+      $('waBtnSend').textContent = '📲 Compartir imagen';
+    }, 'image/png');
+  } catch(e) {
+    console.error('html2canvas error:', e);
+    $('waLoading').textContent = '⚠️ No se pudo generar la imagen';
+    $('waBtnSend').disabled = false;
+    $('waBtnSend').textContent = '💬 Enviar como texto';
+  }
 }
 
-function closeWA() { $('waOverlay').classList.remove('open'); }
+function closeWA() {
+  $('waOverlay').classList.remove('open');
+  if($('waImg').src) { URL.revokeObjectURL($('waImg').src); $('waImg').src=''; }
+}
 
-function sendWA(withNum) {
+async function sendWA(withImage) {
   const p = _waPago;
   if(!p) return;
-  const msg = encodeURIComponent(fmtWA(p));
-  let phone = $('waPhone').value.trim();
-  if(withNum && phone) {
-    phone = normalizePhone(phone);
-    // Save back to student record if changed
+
+  // Save phone if changed
+  const phoneInput = $('waPhone').value.trim();
+  if(phoneInput) {
     const a = ALUMNOS_PRELOAD.find(x=>x.id===p.alumnoId);
-    if(a && a.celular !== $('waPhone').value.trim()) {
-      a.celular = $('waPhone').value.trim();
-      // Persist if custom alumno
+    if(a && a.celular !== phoneInput) {
+      a.celular = phoneInput;
       const ci = alumnosCustom.findIndex(c=>c.id===a.id);
       if(ci>=0) { alumnosCustom[ci].celular = a.celular; saveJ(ALUMNOS_KEY, alumnosCustom); }
     }
-    window.open(`https://wa.me/${phone}?text=${msg}`, '_blank');
+  }
+
+  // Try native share with image (works great on mobile)
+  if(withImage && _waBlob && navigator.canShare) {
+    const file = new File([_waBlob], `Recibo_${p.id}_Lets.png`, {type:'image/png'});
+    const shareData = { files: [file], title: `Recibo N° ${p.id}`, text: `Comprobante de pago - Let's Instituto · ${p.alumnoNombre} · ${fmt(p.total)}` };
+    try {
+      if(navigator.canShare(shareData)) {
+        await navigator.share(shareData);
+        closeWA();
+        return;
+      }
+    } catch(e) {
+      if(e.name !== 'AbortError') console.log('Share cancelled or not supported', e);
+    }
+  }
+
+  // Fallback: download image + open WA with text
+  if(withImage && _waBlob) {
+    // Download image
+    const a2 = document.createElement('a');
+    a2.href = URL.createObjectURL(_waBlob);
+    a2.download = `Recibo_${p.id}_Lets.png`;
+    a2.click();
+    URL.revokeObjectURL(a2.href);
+    // Small delay then open WA with text
+    setTimeout(() => {
+      const msg = encodeURIComponent(fmtWA(p));
+      const phone = phoneInput ? normalizePhone(phoneInput) : '';
+      window.open(phone ? `https://wa.me/${phone}?text=${msg}` : `https://wa.me/?text=${msg}`, '_blank');
+    }, 500);
   } else {
-    window.open(`https://wa.me/?text=${msg}`, '_blank');
+    // Text only
+    const msg = encodeURIComponent(fmtWA(p));
+    const phone = phoneInput ? normalizePhone(phoneInput) : '';
+    window.open(phone ? `https://wa.me/${phone}?text=${msg}` : `https://wa.me/?text=${msg}`, '_blank');
   }
   closeWA();
 }
@@ -1972,11 +2039,8 @@ function sendMorosoWA(alumnoId, mes, monto) {
   m += `_Let's · Bernal_`;
   const msg = encodeURIComponent(m);
   const phone = a.celular ? normalizePhone(a.celular) : '';
-  if(phone) {
-    window.open(`https://wa.me/${phone}?text=${msg}`, '_blank');
-  } else {
-    window.open(`https://wa.me/?text=${msg}`, '_blank');
-  }
+  if(phone) window.open(`https://wa.me/${phone}?text=${msg}`, '_blank');
+  else window.open(`https://wa.me/?text=${msg}`, '_blank');
 }
 
 function limpiarForm(){
@@ -2008,10 +2072,10 @@ function renderHistorial() {
       <td style="white-space:nowrap">${p.mes||'—'}</td>
       <td style="white-space:nowrap"><span class="pill ${p.forma==='efectivo'?'pill-ef':'pill-tr'}" style="white-space:nowrap">${p.forma==='efectivo'?'💵 Efectivo':'🏦 Transf.'}</span></td>
       <td style="white-space:nowrap"><strong>${fmt(p.total)}</strong></td>
-      <td>
-        <button class="btn btn-ghost btn-sm" onclick="verRecibo(${p.id})" title="Ver recibo">🧾</button>
-        <button class="btn btn-ghost btn-sm" onclick="editarPago(${p.id})" style="margin-left:3px" title="Editar">✏️</button>
-        <button class="btn btn-danger btn-sm" onclick="eliminarPago(${p.id})" style="margin-left:3px" title="Eliminar">🗑</button>
+      <td style="white-space:nowrap">
+        <button class="btn btn-ghost btn-sm" onclick="verRecibo(${p.id})" title="Ver recibo" style="padding:4px 7px">🧾</button>
+        <button class="btn btn-ghost btn-sm" onclick="editarPago(${p.id})" title="Editar" style="padding:4px 7px">✏️</button>
+        <button class="btn btn-danger btn-sm" onclick="eliminarPago(${p.id})" title="Eliminar" style="padding:4px 7px">🗑</button>
       </td>
     </tr>`).join('');
   $('histTotal').textContent=`${f.length} registros · Total: ${fmt(total)}`;
