@@ -138,8 +138,8 @@ select:focus,input:focus{border-color:var(--sky)}
 /* TABLE */
 .tbl-wrap{overflow-x:auto;border-radius:8px;border:1px solid var(--border)}
 /* forma pills with color */
-.pill-ef{background:#d0e8c4;color:#375623;font-size:13px;padding:4px 12px}
-.pill-tr{background:#dbbff0;color:#4B1A7A;font-size:13px;padding:4px 12px}
+.pill-ef{background:#d0e8c4;color:#375623;font-size:13px;padding:4px 12px;white-space:nowrap;display:inline-block}
+.pill-tr{background:#dbbff0;color:#4B1A7A;font-size:13px;padding:4px 12px;white-space:nowrap;display:inline-block}
 table{width:100%;border-collapse:collapse;font-size:12px}
 thead tr{background:var(--navy);color:#fff}
 thead th{padding:10px 12px;text-align:left;font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.5px;white-space:nowrap}
@@ -1866,13 +1866,14 @@ function renderHistorial() {
   if(!f.length){body.innerHTML=`<tr><td colspan="9" style="text-align:center;padding:24px;color:var(--muted)">Sin registros</td></tr>`;$('histTotal').textContent='';return;}
   body.innerHTML=f.map(p=>`
     <tr>
-      <td><span style="font-size:10px;color:var(--muted)">${p.id}</span></td>
-      <td>${p.fecha}</td><td><strong>${p.alumnoNombre}</strong></td>
-      <td style="font-size:11px;color:var(--muted)">${p.curso.length>22?p.curso.substring(0,22)+'…':p.curso}</td>
-      <td>${p.concepto}${p.bonif&&p.bonif.tipo!=='ninguna'?` <span style="font-size:10px;font-weight:700">[${p.bonif.tipo==='beca'?'BECA':p.bonif.tipo==='porc'?'-'+p.bonif.val+'%':'-'+fmt(p.bonif.val)}]</span>`:''}</td>
-      <td>${p.mes||'—'}</td>
-      <td><span class="pill ${p.forma==='efectivo'?'pill-ef':'pill-tr'}">${p.forma==='efectivo'?'💵 Efectivo':'🏦 Transf.'}</span></td>
-      <td><strong>${fmt(p.total)}</strong></td>
+      <td style="white-space:nowrap"><span style="font-size:10px;color:var(--muted)">${p.id}</span></td>
+      <td style="white-space:nowrap">${p.fecha}</td>
+      <td style="white-space:nowrap"><strong>${p.alumnoNombre}</strong></td>
+      <td style="font-size:11px;color:var(--muted);white-space:nowrap">${p.curso.length>22?p.curso.substring(0,22)+'…':p.curso}</td>
+      <td style="white-space:nowrap">${p.concepto}${p.bonif&&p.bonif.tipo!=='ninguna'?` <span style="font-size:10px;font-weight:700">[${p.bonif.tipo==='beca'?'BECA':p.bonif.tipo==='porc'?'-'+p.bonif.val+'%':'-'+fmt(p.bonif.val)}]</span>`:''}</td>
+      <td style="white-space:nowrap">${p.mes||'—'}</td>
+      <td style="white-space:nowrap"><span class="pill ${p.forma==='efectivo'?'pill-ef':'pill-tr'}" style="white-space:nowrap">${p.forma==='efectivo'?'💵 Efectivo':'🏦 Transf.'}</span></td>
+      <td style="white-space:nowrap"><strong>${fmt(p.total)}</strong></td>
       <td>
         <button class="btn btn-ghost btn-sm" onclick="verRecibo(${p.id})" title="Ver recibo">🧾</button>
         <button class="btn btn-ghost btn-sm" onclick="editarPago(${p.id})" style="margin-left:3px" title="Editar">✏️</button>
