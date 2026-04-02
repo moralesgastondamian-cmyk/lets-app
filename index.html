@@ -2726,37 +2726,67 @@ function renderRentabilidad() {
 
   // ── Rentabilidad por curso (dinámica) ──
   const rd = getCursoRentData(mes);
-  let tabHtml = `
+  _rentCursos = rd.cursos; // store for sorting
+  _rentGastosInd = rd.gastosIndirectos;
+  _rentTotalHoras = rd.totalHorasInstituto;
+
+  let headerHtml = `
     <div class="alert alert-amber" style="margin-bottom:12px">
       <span class="alert-icon">📐</span>
       <div><strong>Cálculo:</strong> Gastos indirectos (${fmt(rd.gastosIndirectos)}) prorrateados proporcionalmente por horas dictadas. Total horas instituto: <strong>${rd.totalHorasInstituto}h</strong></div>
     </div>
     <div class="tbl-wrap"><table><thead><tr>
-      <th>Curso</th><th>Doc.</th><th>Al.</th><th>Pag.</th>
-      <th>Ing. Teórico</th><th>Ing. Real</th><th>Cto. Doc.</th><th>Gto. Indir.</th>
-      <th>Mg. Bruto</th><th>Mg. Neto</th>
-    </tr></thead><tbody>`;
+      <th style="cursor:pointer" onclick="sortRentCursos('curso')">Curso ↕</th>
+      <th style="cursor:pointer" onclick="sortRentCursos('docente')">Doc. ↕</th>
+      <th style="cursor:pointer" onclick="sortRentCursos('cantAlumnos')">Al. ↕</th>
+      <th style="cursor:pointer" onclick="sortRentCursos('alumnosPagaron')">Pag. ↕</th>
+      <th style="cursor:pointer" onclick="sortRentCursos('ingresoTeorico')">Ing. Teórico ↕</th>
+      <th style="cursor:pointer" onclick="sortRentCursos('ingresoReal')">Ing. Real ↕</th>
+      <th style="cursor:pointer" onclick="sortRentCursos('costoDocente')">Cto. Doc. ↕</th>
+      <th style="cursor:pointer" onclick="sortRentCursos('gastoIndirecto')">Gto. Indir. ↕</th>
+      <th style="cursor:pointer" onclick="sortRentCursos('margenBruto')">Mg. Bruto ↕</th>
+      <th style="cursor:pointer" onclick="sortRentCursos('margenNeto')">Mg. Neto ↕</th>
+    </tr></thead><tbody id="rentCursosBody"></tbody></table></div>`;
+  $('rentCursosTable').innerHTML = headerHtml;
+  renderRentCursosBody();
+}
 
+let _rentCursos = [], _rentSortCol = '', _rentSortDir = 1, _rentGastosInd = 0, _rentTotalHoras = 0;
+
+function sortRentCursos(col) {
+  if(_rentSortCol === col) _rentSortDir *= -1;
+  else { _rentSortCol = col; _rentSortDir = -1; } // default desc for numbers
+  if(col === 'curso' || col === 'docente') _rentSortDir = _rentSortCol === col ? _rentSortDir : 1; // asc for text
+  _rentCursos.sort((a,b) => {
+    const va = a[col], vb = b[col];
+    if(typeof va === 'string') return va.localeCompare(vb) * _rentSortDir;
+    return (va - vb) * _rentSortDir;
+  });
+  renderRentCursosBody();
+}
+
+function renderRentCursosBody() {
   let totTeo=0, totReal=0, totDoc=0, totInd=0, totBruto=0, totNeto=0, totAl=0, totPag=0;
-  rd.cursos.forEach(c => {
+  let rows = '';
+  _rentCursos.forEach(c => {
     totTeo+=c.ingresoTeorico; totReal+=c.ingresoReal; totDoc+=c.costoDocente; totInd+=c.gastoIndirecto;
     totBruto+=c.margenBruto; totNeto+=c.margenNeto; totAl+=c.cantAlumnos; totPag+=c.alumnosPagaron;
-    tabHtml+=`<tr>
+    rows+=`<tr>
       <td style="font-size:10px;max-width:120px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${c.curso}">${c.curso.length>25?c.curso.substring(0,25)+'…':c.curso}</td>
       <td style="font-size:11px">${c.docente}</td>
       <td style="text-align:center">${c.cantAlumnos}</td>
       <td style="text-align:center">${c.alumnosPagaron}</td>
-      <td style="white-space:nowrap">${fmt(c.ingresoTeorico)}</td>
-      <td style="white-space:nowrap;color:${c.ingresoReal<c.ingresoTeorico?'var(--red)':'var(--green)'}">${fmt(c.ingresoReal)}</td>
-      <td style="white-space:nowrap">${fmt(c.costoDocente)}</td>
-      <td style="white-space:nowrap;font-size:11px;color:var(--muted)">${fmt(c.gastoIndirecto)}</td>
+      <td style="white-space:nowrap;color:var(--green);font-weight:600">${fmt(c.ingresoTeorico)}</td>
+      <td style="white-space:nowrap;color:var(--green);font-weight:600">${fmt(c.ingresoReal)}</td>
+      <td style="white-space:nowrap;color:var(--red);font-weight:600">${fmt(c.costoDocente)}</td>
+      <td style="white-space:nowrap;color:var(--red);font-size:11px">${fmt(c.gastoIndirecto)}</td>
       <td style="white-space:nowrap;font-weight:700;color:${c.margenBruto>=0?'var(--green)':'var(--red)'}">
         ${fmt(c.margenBruto)} <span style="font-size:10px;font-weight:400">(${c.pctBruto}%)</span></td>
       <td style="white-space:nowrap;font-weight:700;color:${c.margenNeto>=0?'var(--green)':'var(--red)'}">
         ${fmt(c.margenNeto)} <span style="font-size:10px;font-weight:400">(${c.pctNeto}%)</span></td>
     </tr>`;
   });
-  tabHtml+=`<tr style="background:var(--navy);color:#fff;font-weight:700">
+  rows+=`<tr style="background:var(--navy);color:#fff;font-weight:700">
     <td colspan="2" style="color:#fff">TOTAL</td>
     <td style="color:#fff;text-align:center">${totAl}</td>
     <td style="color:#fff;text-align:center">${totPag}</td>
@@ -2766,8 +2796,8 @@ function renderRentabilidad() {
     <td style="color:#fff;white-space:nowrap">${fmt(totInd)}</td>
     <td style="color:#fff;white-space:nowrap">${fmt(totBruto)}</td>
     <td style="color:#fff;white-space:nowrap">${fmt(totNeto)}</td>
-  </tr></tbody></table></div>`;
-  $('rentCursosTable').innerHTML=tabHtml;
+  </tr>`;
+  $('rentCursosBody').innerHTML = rows;
 }
 
 function syncSueldos(mes) {
