@@ -299,6 +299,33 @@ td{padding:9px 12px;vertical-align:middle}
 .wa-toggle{display:flex;gap:2px;background:var(--sand);border-radius:6px;padding:2px;margin-bottom:14px}
 .wa-toggle button{flex:1;padding:6px 10px;border:none;border-radius:5px;font-size:11px;font-weight:600;cursor:pointer;background:transparent;color:var(--muted);font-family:'DM Sans',sans-serif}
 .wa-toggle button.active{background:#fff;color:var(--navy);box-shadow:0 1px 3px rgba(0,0,0,.1)}
+
+/* ESTADO DE CUENTA */
+.ec-header{display:flex;gap:14px;align-items:center;margin-bottom:16px;flex-wrap:wrap}
+.ec-avatar{width:48px;height:48px;border-radius:50%;background:var(--navy);display:flex;align-items:center;justify-content:center;font-weight:700;font-size:18px;color:#fff;flex-shrink:0}
+.ec-name{font-family:'DM Serif Display',serif;font-size:18px;color:var(--navy)}
+.ec-sub{font-size:11px;color:var(--muted)}
+.ec-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:6px;margin-bottom:16px}
+@media(max-width:600px){.ec-grid{grid-template-columns:repeat(3,1fr)}}
+.ec-month{border-radius:8px;padding:10px 8px;text-align:center;border:1.5px solid var(--border);position:relative;cursor:default;transition:all .15s}
+.ec-month.paid{background:#edf7f1;border-color:#a0d8be}
+.ec-month.pending{background:#fdf0ee;border-color:#f5c6c0;cursor:pointer}
+.ec-month.pending:hover{box-shadow:0 2px 8px rgba(192,57,43,.15)}
+.ec-month.future{background:var(--sand);border-color:var(--border);opacity:.6}
+.ec-month-name{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--muted)}
+.ec-month-icon{font-size:18px;margin:4px 0}
+.ec-month-amt{font-size:11px;font-weight:700}
+.ec-month-detail{font-size:9px;color:var(--muted);margin-top:2px}
+.ec-month.paid .ec-month-amt{color:var(--green)}
+.ec-month.pending .ec-month-amt{color:var(--red)}
+.ec-summary{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin:16px 0}
+.ec-summary-box{text-align:center;padding:12px;border-radius:8px;background:var(--sand)}
+.ec-summary-val{font-family:'DM Serif Display',serif;font-size:20px;color:var(--navy)}
+.ec-summary-val.green{color:var(--green)}.ec-summary-val.red{color:var(--red)}
+.ec-summary-label{font-size:10px;font-weight:600;color:var(--muted);text-transform:uppercase;margin-top:3px}
+.ec-mat{display:flex;align-items:center;gap:10px;padding:10px 14px;border-radius:8px;margin-bottom:14px;font-size:13px}
+.ec-mat.paid{background:#edf7f1;border:1px solid #a0d8be}.ec-mat.pending{background:#fdf0ee;border:1px solid #f5c6c0}
+.ec-actions{display:flex;gap:8px;flex-wrap:wrap;justify-content:center;padding-top:14px;border-top:1px solid var(--sand)}
 </style>
 </head>
 <body>
@@ -530,7 +557,11 @@ td{padding:9px 12px;vertical-align:middle}
     <input type="hidden" id="alumnoDesc">
 
     <div id="alumnoInfo" style="display:none;background:var(--sand);border-radius:8px;padding:10px 14px;margin:8px 0;font-size:12px">
-      <strong id="infoNombre"></strong> &nbsp;·&nbsp; <span id="infoCurso"></span> &nbsp;·&nbsp; <span id="infoDesc"></span>
+      <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:6px">
+        <div><strong id="infoNombre"></strong> &nbsp;·&nbsp; <span id="infoCurso"></span> &nbsp;·&nbsp; <span id="infoDesc"></span></div>
+        <button class="btn btn-ghost btn-sm" onclick="openEC(parseInt($('alumnoId').value))" style="font-size:10px;padding:3px 8px">📊 Estado de cuenta</button>
+      </div>
+      <div id="infoMiniEC" style="margin-top:6px;display:none"></div>
     </div>
 
     <div class="separator"></div>
@@ -1072,8 +1103,18 @@ td{padding:9px 12px;vertical-align:middle}
     <div id="modalVerAlumnoContent"></div>
     <div class="modal-footer">
       <button class="btn btn-ghost" onclick="cerrarModalVerAlumno()">Cerrar</button>
+      <button class="btn btn-accent" onclick="cerrarModalVerAlumno();openEC(parseInt($('modalVerAlumno').dataset.currentId))">📊 Estado de cuenta</button>
       <button class="btn btn-primary" onclick="editarAlumnoModal()">✏️ Editar</button>
     </div>
+  </div>
+</div>
+
+<!-- ══════════ MODAL ESTADO DE CUENTA ══════════ -->
+<div class="modal-overlay" id="modalEC" onclick="if(event.target===this)this.classList.remove('active')">
+  <div class="modal" style="max-width:620px">
+    <div class="modal-title">📊 Estado de Cuenta</div>
+    <div id="ecContent"></div>
+    <div class="ec-actions" id="ecActions"></div>
   </div>
 </div>
 
@@ -1530,8 +1571,9 @@ function renderAlumnos() {
         ${a.familiar?'<span class="pill pill-blue" style="margin-left:3px">fam</span>':''}
       </div>
       <div style="display:flex;gap:4px">
-        <button class="btn btn-ghost btn-sm" onclick="verAlumno(${a.id})" title="Ver detalle">👁</button>
-        <button class="btn btn-ghost btn-sm" onclick="abrirModalAlumno(${a.id})" title="Editar">✏️</button>
+        <button class="btn btn-ghost btn-sm" onclick="openEC(${a.id})" title="Estado de cuenta" style="padding:4px 7px">📊</button>
+        <button class="btn btn-ghost btn-sm" onclick="verAlumno(${a.id})" title="Ver detalle" style="padding:4px 7px">👁</button>
+        <button class="btn btn-ghost btn-sm" onclick="abrirModalAlumno(${a.id})" title="Editar" style="padding:4px 7px">✏️</button>
       </div>
     </div>`;
   }).join('');
@@ -1715,6 +1757,16 @@ function selectAlumno(id) {
   $('infoNombre').textContent=`${a.apellido}, ${a.nombre}`;
   $('infoCurso').textContent=a.curso;
   $('infoDesc').textContent=a.familiar?'🏷 Desc. familiar':'';
+  // Mini estado de cuenta
+  const ec = getEstadoCuenta(id);
+  const miniEl = $('infoMiniEC');
+  if(miniEl) {
+    const dots = ec.meses.map(m =>
+      `<span title="${m.mes}: ${m.status==='paid'?'Pagado '+fmt(m.total):'Pendiente'}" style="display:inline-block;width:10px;height:10px;border-radius:50%;background:${m.status==='paid'?'var(--green)':m.status==='pending'?'var(--red)':'var(--border)'};margin-right:3px"></span>`
+    ).join('');
+    miniEl.innerHTML = `<div style="display:flex;align-items:center;gap:8px;font-size:11px"><span style="color:var(--muted)">Cuotas:</span>${dots}<span style="margin-left:4px;font-weight:600;color:${ec.balance>=0?'var(--green)':'var(--red)'}">Saldo: ${fmt(ec.totalPagado)}</span></div>`;
+    miniEl.style.display = 'block';
+  }
   calcularPrecio();
 }
 
@@ -2041,6 +2093,234 @@ function sendMorosoWA(alumnoId, mes, monto) {
   const phone = a.celular ? normalizePhone(a.celular) : '';
   if(phone) window.open(`https://wa.me/${phone}?text=${msg}`, '_blank');
   else window.open(`https://wa.me/?text=${msg}`, '_blank');
+}
+
+// ── ESTADO DE CUENTA ─────────────────────────────
+const EC_MESES = ['Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
+const MES_NUM  = {Marzo:2,Abril:3,Mayo:4,Junio:5,Julio:6,Agosto:7,Septiembre:8,Octubre:9,Noviembre:10,Diciembre:11};
+
+function getEstadoCuenta(alumnoId) {
+  const a = ALUMNOS_PRELOAD.find(x=>x.id===alumnoId);
+  if(!a) return null;
+  const pagosA = pagos.filter(p=>p.alumnoId===alumnoId);
+  const now = new Date();
+  const mesActIdx = now.getMonth(); // 0=Ene
+
+  // Matrícula
+  const matPago = pagosA.find(p=>p.concepto==='Matrícula 2026');
+  const matStatus = matPago ? 'paid' : 'pending';
+  const t = TARIFAS_BASE[a.curso] || Object.values(TARIFAS_BASE)[0];
+
+  // Cuotas por mes
+  const mesesData = EC_MESES.map(mes => {
+    const cuota = pagosA.find(p=>p.mes===mes && p.concepto==='Cuota mensual');
+    const mesNum = MES_NUM[mes];
+    let status;
+    if(cuota) status = 'paid';
+    else if(mesNum <= mesActIdx) status = 'pending';
+    else status = 'future';
+
+    return {
+      mes,
+      status,
+      total: cuota ? cuota.total : 0,
+      forma: cuota ? cuota.forma : null,
+      fecha: cuota ? cuota.fecha : null,
+      estimado: t.transferencia
+    };
+  });
+
+  const totalPagado = pagosA.reduce((s,p)=>s+p.total, 0);
+  const cuotasPagadas = mesesData.filter(m=>m.status==='paid').length;
+  const cuotasPendientes = mesesData.filter(m=>m.status==='pending').length;
+  const totalDeuda = cuotasPendientes * t.transferencia + (matStatus==='pending' ? t.matricula : 0);
+  const balance = totalPagado - (cuotasPagadas * t.transferencia + (matStatus==='paid' ? t.matricula : 0)) ;
+
+  return { alumno: a, matStatus, matPago, mesesData, meses: mesesData, totalPagado, totalDeuda, cuotasPagadas, cuotasPendientes, balance, tarifa: t };
+}
+
+function openEC(alumnoId) {
+  const ec = getEstadoCuenta(alumnoId);
+  if(!ec) return;
+  const a = ec.alumno;
+  const initials = (a.nombre[0]||'')+(a.apellido[0]||'');
+
+  let html = '';
+  // Header
+  html += `<div class="ec-header">
+    <div class="ec-avatar">${initials.toUpperCase()}</div>
+    <div><div class="ec-name">${a.apellido}, ${a.nombre}</div>
+    <div class="ec-sub">${a.curso}</div>
+    <div class="ec-sub">${a.responsable||''} ${a.celular?'· '+a.celular:''}</div></div>
+  </div>`;
+
+  // Matrícula
+  html += `<div class="ec-mat ${ec.matStatus}">
+    <span style="font-size:16px">${ec.matStatus==='paid'?'✅':'⏳'}</span>
+    <div style="flex:1"><strong>Matrícula 2026</strong>
+    <div style="font-size:11px;color:var(--muted)">${ec.matStatus==='paid'?'Pagada el '+ec.matPago.fecha+' · '+fmt(ec.matPago.total):'Pendiente · '+fmt(ec.tarifa.matricula)}</div></div>
+    ${ec.matStatus==='pending'?`<button class="btn btn-primary btn-sm" onclick="ecGoToPay(${a.id},'matricula','')">Cobrar</button>`:''}
+  </div>`;
+
+  // Grid de meses
+  html += `<div class="section-label">Cuotas mensuales</div>`;
+  html += `<div class="ec-grid">`;
+  ec.meses.forEach(m => {
+    const icon = m.status==='paid'?'✅':m.status==='pending'?'❌':'⏳';
+    const clickAttr = m.status==='pending' ? `onclick="ecGoToPay(${a.id},'cuota','${m.mes}')" style="cursor:pointer"` : '';
+    html += `<div class="ec-month ${m.status}" ${clickAttr}>
+      <div class="ec-month-name">${m.mes.substring(0,3)}</div>
+      <div class="ec-month-icon">${icon}</div>
+      <div class="ec-month-amt">${m.status==='paid'?fmt(m.total):m.status==='pending'?fmt(m.estimado):'—'}</div>
+      <div class="ec-month-detail">${m.status==='paid'?(m.forma==='efectivo'?'💵 Ef.':'🏦 Tr.')+(m.fecha?' · '+m.fecha:''):m.status==='pending'?'Toc\u00e1 para cobrar':'Pr\u00f3ximo'}</div>
+    </div>`;
+  });
+  html += `</div>`;
+
+  // Resumen
+  html += `<div class="ec-summary">
+    <div class="ec-summary-box"><div class="ec-summary-val green">${fmt(ec.totalPagado)}</div><div class="ec-summary-label">Total pagado</div></div>
+    <div class="ec-summary-box"><div class="ec-summary-val red">${fmt(ec.totalDeuda)}</div><div class="ec-summary-label">Total adeudado</div></div>
+    <div class="ec-summary-box"><div class="ec-summary-val">${ec.cuotasPagadas}/${EC_MESES.length}</div><div class="ec-summary-label">Cuotas al d\u00eda</div></div>
+  </div>`;
+
+  $('ecContent').innerHTML = html;
+
+  // Actions
+  let acts = `<button class="btn btn-ghost btn-sm" onclick="$('modalEC').classList.remove('active')">Cerrar</button>`;
+  if(ec.cuotasPendientes > 0) {
+    acts += `<button class="btn btn-wa btn-sm" onclick="ecSendReminder(${a.id})">📲 Recordatorio deuda</button>`;
+  }
+  acts += `<button class="btn btn-wa btn-sm" onclick="ecSendWA(${a.id})">📲 Enviar resumen</button>`;
+  acts += `<button class="btn btn-accent btn-sm" onclick="ecDownloadPDF(${a.id})">⬇ PDF</button>`;
+  $('ecActions').innerHTML = acts;
+
+  $('modalEC').classList.add('active');
+}
+
+function ecGoToPay(alumnoId, concepto, mes) {
+  $('modalEC').classList.remove('active');
+  showPage('cobrar');
+  selectAlumno(alumnoId);
+  setTimeout(() => {
+    $('concepto').value = concepto;
+    if(concepto==='cuota' && mes) {
+      $('mesPagoRow').style.display = 'block';
+      $('mesPago').value = mes;
+    }
+    calcularPrecio();
+  }, 100);
+}
+
+function ecSendWA(alumnoId) {
+  const ec = getEstadoCuenta(alumnoId);
+  if(!ec) return;
+  const a = ec.alumno;
+  let m = `📊 *Estado de Cuenta*\n`;
+  m += `━━━━━━━━━━━━━━━━━━\n`;
+  m += `👤 *${a.apellido}, ${a.nombre}*\n`;
+  m += `📚 ${a.curso}\n\n`;
+  m += `📋 *Matrícula:* ${ec.matStatus==='paid'?'✅ Pagada':'❌ Pendiente'}\n\n`;
+  m += `📅 *Cuotas:*\n`;
+  ec.meses.forEach(me => {
+    if(me.status==='paid') m += `  ✅ ${me.mes}: ${fmt(me.total)}\n`;
+    else if(me.status==='pending') m += `  ❌ ${me.mes}: pendiente\n`;
+  });
+  m += `\n💰 *Total pagado: ${fmt(ec.totalPagado)}*\n`;
+  if(ec.totalDeuda > 0) m += `⚠️ *Total adeudado: ${fmt(ec.totalDeuda)}*\n`;
+  m += `━━━━━━━━━━━━━━━━━━\n`;
+  m += `_Let's · Innovation English Institute_`;
+  const msg = encodeURIComponent(m);
+  const phone = a.celular ? normalizePhone(a.celular) : '';
+  window.open(phone ? `https://wa.me/${phone}?text=${msg}` : `https://wa.me/?text=${msg}`, '_blank');
+}
+
+function ecSendReminder(alumnoId) {
+  const ec = getEstadoCuenta(alumnoId);
+  if(!ec) return;
+  const a = ec.alumno;
+  const pending = ec.meses.filter(m=>m.status==='pending');
+  const mesesStr = pending.map(m=>m.mes).join(', ');
+  let m = `Hola${a.responsable ? ' *'+a.responsable.split('/')[0].trim()+'*' : ''}! 👋\n\n`;
+  m += `Te escribimos desde *Let's · Innovation English Institute* `;
+  m += `respecto al estado de cuenta de *${a.nombre} ${a.apellido}*.\n\n`;
+  if(ec.matStatus==='pending') m += `📋 Matrícula 2026: *pendiente* (${fmt(ec.tarifa.matricula)})\n`;
+  m += `📅 Cuotas pendientes: *${mesesStr}*\n`;
+  m += `💰 Total adeudado: *${fmt(ec.totalDeuda)}*\n\n`;
+  m += `Podés abonar por transferencia o en efectivo.\n`;
+  m += `Cualquier consulta no dudes en escribirnos.\n\n`;
+  m += `¡Gracias! 🙌\n_Let's · Bernal_`;
+  const msg = encodeURIComponent(m);
+  const phone = a.celular ? normalizePhone(a.celular) : '';
+  window.open(phone ? `https://wa.me/${phone}?text=${msg}` : `https://wa.me/?text=${msg}`, '_blank');
+}
+
+function ecDownloadPDF(alumnoId) {
+  const ec = getEstadoCuenta(alumnoId);
+  if(!ec) return;
+  const a = ec.alumno;
+  const {jsPDF} = window.jspdf;
+  const doc = new jsPDF({unit:'mm', format:'a4', orientation:'portrait'});
+
+  // Header
+  doc.setFillColor(15,31,61); doc.rect(0,0,210,32,'F');
+  doc.setFont('helvetica','bold'); doc.setFontSize(16); doc.setTextColor(255,255,255);
+  doc.text("Let's · Instituto de Inglés", 14, 14);
+  doc.setFont('helvetica','normal'); doc.setFontSize(9);
+  doc.text("Estado de Cuenta — " + new Date().toLocaleDateString('es-AR'), 14, 22);
+  doc.setFont('helvetica','bold'); doc.setFontSize(10);
+  doc.text("CONFIDENCIAL", 196, 14, {align:'right'});
+
+  // Student info
+  let y = 40;
+  doc.setTextColor(15,31,61); doc.setFont('helvetica','bold'); doc.setFontSize(14);
+  doc.text(`${a.apellido}, ${a.nombre}`, 14, y);
+  doc.setFont('helvetica','normal'); doc.setFontSize(9); doc.setTextColor(120,120,120);
+  doc.text(`${a.curso}  ·  ${a.responsable||''}  ·  ${a.celular||''}`, 14, y+6);
+
+  // Matrícula
+  y += 16;
+  doc.setFillColor(ec.matStatus==='paid'?237:253, ec.matStatus==='paid'?247:240, ec.matStatus==='paid'?241:238);
+  doc.roundedRect(14, y, 182, 10, 2, 2, 'F');
+  doc.setFont('helvetica','bold'); doc.setFontSize(10); doc.setTextColor(15,31,61);
+  doc.text(`Matrícula 2026: ${ec.matStatus==='paid'?'PAGADA':'PENDIENTE'}`, 18, y+7);
+  if(ec.matPago) doc.text(fmt(ec.matPago.total), 192, y+7, {align:'right'});
+  else doc.text(fmt(ec.tarifa.matricula), 192, y+7, {align:'right'});
+
+  // Table header
+  y += 18;
+  doc.setFillColor(15,31,61); doc.roundedRect(14, y, 182, 8, 2, 2, 'F');
+  doc.setFont('helvetica','bold'); doc.setFontSize(8); doc.setTextColor(255,255,255);
+  doc.text('Mes', 18, y+5.5); doc.text('Estado', 60, y+5.5); doc.text('Forma', 105, y+5.5); doc.text('Fecha', 140, y+5.5); doc.text('Monto', 192, y+5.5, {align:'right'});
+
+  // Table rows
+  y += 10;
+  ec.meses.forEach((m, i) => {
+    if(i % 2 === 0) { doc.setFillColor(245,243,238); doc.rect(14, y-1, 182, 7, 'F'); }
+    doc.setFont('helvetica','normal'); doc.setFontSize(9); doc.setTextColor(30,30,30);
+    doc.text(m.mes, 18, y+4);
+    doc.setTextColor(m.status==='paid'?45:m.status==='pending'?192:150, m.status==='paid'?154:m.status==='pending'?57:150, m.status==='paid'?107:m.status==='pending'?43:150);
+    doc.setFont('helvetica','bold');
+    doc.text(m.status==='paid'?'PAGADA':m.status==='pending'?'PENDIENTE':'—', 60, y+4);
+    doc.setFont('helvetica','normal'); doc.setTextColor(100,100,100);
+    doc.text(m.forma==='efectivo'?'Efectivo':m.forma==='transferencia'?'Transf.':'—', 105, y+4);
+    doc.text(m.fecha||'—', 140, y+4);
+    doc.setFont('helvetica','bold'); doc.setTextColor(30,30,30);
+    doc.text(m.status==='paid'?fmt(m.total):m.status==='pending'?fmt(m.estimado):'—', 192, y+4, {align:'right'});
+    y += 7;
+  });
+
+  // Summary
+  y += 8;
+  doc.setDrawColor(15,31,61); doc.setLineWidth(0.5); doc.line(14, y, 196, y); y += 6;
+  doc.setFont('helvetica','bold'); doc.setFontSize(11); doc.setTextColor(45,154,107);
+  doc.text(`Total pagado: ${fmt(ec.totalPagado)}`, 14, y);
+  if(ec.totalDeuda > 0) { doc.setTextColor(192,57,43); doc.text(`Total adeudado: ${fmt(ec.totalDeuda)}`, 196, y, {align:'right'}); }
+  y += 8;
+  doc.setFont('helvetica','normal'); doc.setFontSize(8); doc.setTextColor(150,150,150);
+  doc.text(`Generado el ${new Date().toLocaleDateString('es-AR')} · Let's Innovation English Institute · Bernal`, 105, y, {align:'center'});
+
+  doc.save(`EstadoDeCuenta_${a.apellido}_${a.nombre.replace(/ /g,'_')}.pdf`);
 }
 
 function limpiarForm(){
