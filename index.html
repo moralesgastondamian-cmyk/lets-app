@@ -2503,19 +2503,97 @@ function renderMorosos(){
 
 // ── RENTABILIDAD ─────────────────────────────────
 function getIngresosMes(mes) {
-  const pagosMes = pagos.filter(p=>p.mes===mes||
-    (p.concepto==='Matrícula 2026'&&p.fecha&&p.fecha.includes('2026')));
   const cuotasMes = pagos.filter(p=>p.mes===mes&&p.concepto==='Cuota mensual');
-  const matriculas = pagos.filter(p=>p.concepto==='Matrícula 2026');
   const cuotasTr = cuotasMes.filter(p=>p.forma==='transferencia').reduce((s,p)=>s+p.total,0);
   const cuotasEf = cuotasMes.filter(p=>p.forma==='efectivo').reduce((s,p)=>s+p.total,0);
-  const matTotal = matriculas.filter(p=>{
+  const matTotal = pagos.filter(p=>p.concepto==='Matrícula 2026').filter(p=>{
     if(!p.fecha) return false;
     const d=new Date(p.fecha);
-    const m=meses[d.getMonth()];
-    return m===mes;
+    return meses[d.getMonth()]===mes;
   }).reduce((s,p)=>s+p.total,0);
   return {cuotasTr, cuotasEf, matTotal, total: cuotasTr+cuotasEf+matTotal};
+}
+
+// ── Calcular total de haberes desde el módulo de Haberes ──
+function getHabTotalMes(mes) {
+  const cfg=getHabCfg(), data=getHabData(mes);
+  let totalDoc=0;
+  cfg.docentes.forEach(doc => {
+    const clasesData=data.clases[doc.n]||{};
+    doc.cursos.forEach(curso => {
+      getClasesDates(mes,curso.ds).filter(d=>!(data.nl||[]).includes(d)).forEach(fecha => {
+        const cl=clasesData[`${doc.n}|${fecha}|${curso.c}`]||{presente:true,h:curso.h};
+        if(cl.presente) totalDoc+=parseFloat(cl.h)||0;
+      });
+    });
+  });
+  // Admin
+  const workDays=getAdminWorkDays(mes,cfg.admin.dias||[1,2,3,4,5],data.nl||[]);
+  const adminDias=data.adminDias||{};
+  let totalAdminH=0;
+  workDays.forEach(fecha => { totalAdminH+=parseFloat(adminDias[fecha])||0; });
+  return { docentes: totalDoc * cfg.vh, admin: totalAdminH * cfg.vha, total: totalDoc*cfg.vh + totalAdminH*cfg.vha, horasDoc: totalDoc, horasAdmin: totalAdminH, vh: cfg.vh };
+}
+
+// ── Rentabilidad por curso: datos dinámicos ──
+function getCursoRentData(mes) {
+  const cfg=getHabCfg(), data=getHabData(mes);
+  const tarifas = mes==='Mayo'?tarifasMayo:TARIFAS_BASE;
+  const result = [];
+  let totalHorasInstituto = 0;
+
+  // Calcular horas totales del instituto (todos los docentes, todos los cursos)
+  cfg.docentes.forEach(doc => {
+    const clasesData=data.clases[doc.n]||{};
+    doc.cursos.forEach(curso => {
+      let horasCurso = 0;
+      getClasesDates(mes,curso.ds).filter(d=>!(data.nl||[]).includes(d)).forEach(fecha => {
+        const cl=clasesData[`${doc.n}|${fecha}|${curso.c}`]||{presente:true,h:curso.h};
+        if(cl.presente) horasCurso+=parseFloat(cl.h)||0;
+      });
+      totalHorasInstituto += horasCurso;
+
+      // Alumnos activos en este curso
+      const alumnosCurso = ALUMNOS_PRELOAD.filter(a=>a.estado==='Activo'&&a.curso===curso.c);
+      const cantAlumnos = alumnosCurso.length;
+
+      // Tarifa
+      const t = tarifas[curso.c] || Object.values(tarifas)[0];
+      const ingresoTeorico = cantAlumnos * t.transferencia;
+
+      // Ingreso real cobrado
+      const pagadoCurso = pagos.filter(p=>p.mes===mes&&p.concepto==='Cuota mensual'&&alumnosCurso.some(a=>a.id===p.alumnoId));
+      const ingresoReal = pagadoCurso.reduce((s,p)=>s+p.total,0);
+      const alumnosPagaron = pagadoCurso.length;
+
+      // Costo docente directo
+      const costoDocente = horasCurso * cfg.vh;
+
+      result.push({
+        curso: curso.c, docente: doc.n, cantAlumnos, alumnosPagaron,
+        ingresoTeorico, ingresoReal, costoDocente, horasCurso,
+        tarifaTransf: t.transferencia
+      });
+    });
+  });
+
+  // Gastos indirectos (todo menos haberes/sueldos)
+  const gastosMes = getRentMes(mes);
+  const egresosExtra = rentData[mes+'_extra'] || [];
+  const gastosIndirectos = gastosMes.filter(g=>g.key!=='haberes'&&g.key!=='sueldos').reduce((s,g)=>s+g.valor,0) + egresosExtra.reduce((s,g)=>s+g.valor,0);
+
+  // Asignar proporcional a cada curso
+  result.forEach(r => {
+    r.gastoIndirecto = totalHorasInstituto > 0 ? Math.round(gastosIndirectos * (r.horasCurso / totalHorasInstituto)) : 0;
+    r.margenBruto = r.ingresoTeorico - r.costoDocente;
+    r.margenBrutoReal = r.ingresoReal - r.costoDocente;
+    r.margenNeto = r.ingresoTeorico - r.costoDocente - r.gastoIndirecto;
+    r.margenNetoReal = r.ingresoReal - r.costoDocente - r.gastoIndirecto;
+    r.pctBruto = r.ingresoTeorico > 0 ? ((r.margenBruto/r.ingresoTeorico)*100).toFixed(0) : 0;
+    r.pctNeto = r.ingresoTeorico > 0 ? ((r.margenNeto/r.ingresoTeorico)*100).toFixed(0) : 0;
+  });
+
+  return { cursos: result, totalHorasInstituto, gastosIndirectos };
 }
 
 function renderRentabilidad() {
@@ -2524,9 +2602,20 @@ function renderRentabilidad() {
   const ingresos = getIngresosMes(mes);
   const gastosMes = getRentMes(mes);
   const egresosExtra = rentData[mes+'_extra'] || [];
-  const totalFijos = gastosMes.filter(g=>g.key!=='haberes').reduce((s,g)=>s+g.valor,0);
+
+  // Haberes total from module
+  const hab = getHabTotalMes(mes);
+  // Sueldos: editable, defaults to haberes total
+  const sueldoIdx = gastosMes.findIndex(g=>g.key==='sueldos');
+  if(sueldoIdx===-1) {
+    gastosMes.push({key:'sueldos', label:'Sueldos (Docentes + Admin)', valor: hab.total, tipo:'auto', nota:'Dato de Haberes. Podés editarlo si difiere.'});
+  } else if(gastosMes[sueldoIdx].valor===0) {
+    gastosMes[sueldoIdx].valor = hab.total;
+  }
+
+  const totalGastos = gastosMes.filter(g=>g.key!=='haberes').reduce((s,g)=>s+g.valor,0);
   const totalExtra = egresosExtra.reduce((s,g)=>s+g.valor,0);
-  const totalEgresos = totalFijos + totalExtra;
+  const totalEgresos = totalGastos + totalExtra;
   const resultado = ingresos.total - totalEgresos;
   const margen = ingresos.total>0 ? ((resultado/ingresos.total)*100).toFixed(1) : 0;
 
@@ -2546,13 +2635,13 @@ function renderRentabilidad() {
     <div class="gasto-row"><span class="gasto-label">Cuotas (Transferencia)</span><span style="font-weight:600">${fmt(ingresos.cuotasTr)}</span></div>
     <div class="gasto-row"><span class="gasto-label">Cuotas (Efectivo)</span><span style="font-weight:600">${fmt(ingresos.cuotasEf)}</span></div>
     <div class="gasto-row"><span class="gasto-label">Matrículas cobradas</span><span style="font-weight:600">${fmt(ingresos.matTotal)}</span></div>
-    <div class="gasto-row"><span class="gasto-label" style="color:var(--muted);font-size:11px">Los ingresos se toman de los pagos registrados en la App</span></div>
   `;
   $('rentTotalIngresos').textContent = fmt(ingresos.total);
 
-  // Egresos fijos
-  $('rentEgresos').innerHTML = gastosMes.filter(g=>g.key!=='haberes').map(g=>`
-    <div class="gasto-row">
+  // Egresos fijos (incluye sueldos, excluye el viejo "haberes auto")
+  $('rentEgresos').innerHTML = gastosMes.filter(g=>g.key!=='haberes').map(g=>{
+    const isSueldos = g.key==='sueldos';
+    return `<div class="gasto-row">
       <div class="gasto-label">
         <div style="font-weight:500">${g.label}</div>
         ${g.nota?`<div style="font-size:10px;color:var(--muted)">${g.nota}</div>`:''}
@@ -2560,9 +2649,11 @@ function renderRentabilidad() {
       <span class="gasto-badge ${g.tipo==='variable'?'gasto-variable':''}">${g.tipo}</span>
       <input type="number" class="gasto-input" id="gasto_${g.key}" value="${g.valor}"
         oninput="recalcEgresos('${mes}')" style="width:130px;text-align:right;font-size:13px">
-    </div>`).join('');
+      ${isSueldos?`<button class="btn btn-ghost btn-sm" onclick="syncSueldos('${mes}')" title="Traer dato de Haberes" style="padding:4px 7px;margin-left:2px">🔄</button>`:''}
+    </div>`;
+  }).join('');
 
-  // Egresos extra (conceptos nuevos agregados por el usuario)
+  // Egresos extra
   const extraHtml = egresosExtra.map((g,i)=>`
     <div class="gasto-row" id="extra_row_${i}">
       <div class="gasto-label">
@@ -2597,38 +2688,54 @@ function renderRentabilidad() {
     </div>
   `;
 
-  // Rentabilidad por curso
-  const cursos = [
-    {nombre:"Kinder (Sala de 5)",alumnos:6,tarifa:40000,docente:"Mile",hs:2,sem:4},
-    {nombre:"Kids 2 (2do grado)",alumnos:5,tarifa:45000,docente:"Camila Carrara",hs:2,sem:4},
-    {nombre:"Kids 3 (3er grado)",alumnos:4,tarifa:45000,docente:"Inés",hs:2,sem:4},
-    {nombre:"Kids 4 (4to grado)",alumnos:22,tarifa:45000,docente:"Leti",hs:4,sem:4},
-    {nombre:"Teens 1 (adolescente principiante)",alumnos:8,tarifa:50000,docente:"Leti",hs:2,sem:4},
-    {nombre:"Teens 3 (adolescente pre-intermedio)",alumnos:11,tarifa:50000,docente:"Leti",hs:4,sem:4},
-    {nombre:"Teens 4 (adolescente intermedio)",alumnos:9,tarifa:50000,docente:"Pablo",hs:2,sem:4},
-    {nombre:"1st Year (adulto principiante)",alumnos:9,tarifa:50000,docente:"Camila Carrara",hs:2,sem:4},
-    {nombre:"2nd Year (adulto elemental)",alumnos:10,tarifa:50000,docente:"Pablo",hs:2,sem:4},
-    {nombre:"3rd Year (adulto pre-intermedio)",alumnos:9,tarifa:50000,docente:"Leti",hs:2,sem:4},
-    {nombre:"4th Year (adulto intermedio)",alumnos:6,tarifa:50000,docente:"Pablo",hs:2,sem:4},
-    {nombre:"C1 Advanced (Cambridge)",alumnos:5,tarifa:65000,docente:"Leti",hs:2,sem:4},
-  ];
-  const valorHora = 14000;
-  let tabHtml = `<table><thead><tr><th>Curso</th><th>Docente</th><th>Alumnos</th><th>Ing. Cuotas</th><th>Costo Docente</th><th>Margen $</th><th>Margen %</th></tr></thead><tbody>`;
-  cursos.forEach(c=>{
-    const ing = c.alumnos*c.tarifa;
-    const cost = c.hs*c.sem*valorHora;
-    const mg = ing-cost;
-    const mgp = ing>0?((mg/ing)*100).toFixed(1):0;
+  // ── Rentabilidad por curso (dinámica) ──
+  const rd = getCursoRentData(mes);
+  let tabHtml = `
+    <div class="alert alert-amber" style="margin-bottom:12px">
+      <span class="alert-icon">📐</span>
+      <div><strong>Cálculo:</strong> Gastos indirectos (${fmt(rd.gastosIndirectos)}) prorrateados proporcionalmente por horas dictadas. Total horas instituto: <strong>${rd.totalHorasInstituto}h</strong></div>
+    </div>
+    <div class="tbl-wrap"><table><thead><tr>
+      <th>Curso</th><th>Doc.</th><th>Al.</th><th>Pag.</th>
+      <th>Ing. Teórico</th><th>Ing. Real</th><th>Cto. Doc.</th><th>Gto. Indir.</th>
+      <th>Mg. Bruto</th><th>Mg. Neto</th>
+    </tr></thead><tbody>`;
+
+  let totTeo=0, totReal=0, totDoc=0, totInd=0, totBruto=0, totNeto=0;
+  rd.cursos.forEach(c => {
+    totTeo+=c.ingresoTeorico; totReal+=c.ingresoReal; totDoc+=c.costoDocente; totInd+=c.gastoIndirecto;
+    totBruto+=c.margenBruto; totNeto+=c.margenNeto;
     tabHtml+=`<tr>
-      <td style="font-size:11px">${c.nombre.length>30?c.nombre.substring(0,30)+'…':c.nombre}</td>
-      <td>${c.docente}</td><td style="text-align:center">${c.alumnos}</td>
-      <td>${fmt(ing)}</td><td>${fmt(cost)}</td>
-      <td style="font-weight:700;color:${mg>=0?'var(--green)':'var(--red)'}">${fmt(mg)}</td>
-      <td style="color:${mg>=0?'var(--green)':'var(--red)'}">${mgp}%</td>
+      <td style="font-size:10px;max-width:120px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${c.curso}">${c.curso.length>25?c.curso.substring(0,25)+'…':c.curso}</td>
+      <td style="font-size:11px">${c.docente}</td>
+      <td style="text-align:center">${c.cantAlumnos}</td>
+      <td style="text-align:center">${c.alumnosPagaron}</td>
+      <td style="white-space:nowrap">${fmt(c.ingresoTeorico)}</td>
+      <td style="white-space:nowrap;color:${c.ingresoReal<c.ingresoTeorico?'var(--red)':'var(--green)'}">${fmt(c.ingresoReal)}</td>
+      <td style="white-space:nowrap">${fmt(c.costoDocente)}</td>
+      <td style="white-space:nowrap;font-size:11px;color:var(--muted)">${fmt(c.gastoIndirecto)}</td>
+      <td style="white-space:nowrap;font-weight:700;color:${c.margenBruto>=0?'var(--green)':'var(--red)'}">
+        ${fmt(c.margenBruto)} <span style="font-size:10px;font-weight:400">(${c.pctBruto}%)</span></td>
+      <td style="white-space:nowrap;font-weight:700;color:${c.margenNeto>=0?'var(--green)':'var(--red)'}">
+        ${fmt(c.margenNeto)} <span style="font-size:10px;font-weight:400">(${c.pctNeto}%)</span></td>
     </tr>`;
   });
-  tabHtml+='</tbody></table>';
+  tabHtml+=`<tr style="background:var(--navy);color:#fff;font-weight:700">
+    <td colspan="4" style="color:#fff">TOTAL</td>
+    <td style="color:#fff;white-space:nowrap">${fmt(totTeo)}</td>
+    <td style="color:#fff;white-space:nowrap">${fmt(totReal)}</td>
+    <td style="color:#fff;white-space:nowrap">${fmt(totDoc)}</td>
+    <td style="color:#fff;white-space:nowrap">${fmt(totInd)}</td>
+    <td style="color:#fff;white-space:nowrap">${fmt(totBruto)}</td>
+    <td style="color:#fff;white-space:nowrap">${fmt(totNeto)}</td>
+  </tr></tbody></table></div>`;
   $('rentCursosTable').innerHTML=tabHtml;
+}
+
+function syncSueldos(mes) {
+  const hab = getHabTotalMes(mes);
+  const el = $('gasto_sueldos');
+  if(el) { el.value = hab.total; recalcEgresos(mes); }
 }
 
 function recalcEgresos(mes) {
