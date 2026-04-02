@@ -1029,7 +1029,7 @@ td{padding:9px 12px;vertical-align:middle}
       </div>
       <div class="form-row">
         <label>Curso / Nivel *</label>
-        <select id="ma_curso">
+        <select id="ma_curso" onchange="handleCursoChange()">
           <option value="">— seleccioná —</option>
         </select>
       </div>
@@ -1623,16 +1623,21 @@ function abrirModalAlumno(id) {
   $('modalAlumnoTitle').textContent = id ? 'Editar alumno' : 'Agregar nuevo alumno';
   $('ma_fecha').value = today();
 
-  // Populate curso select
-  const sel = $('ma_curso');
-  sel.innerHTML = '<option value="">— seleccioná —</option>';
-  Object.keys(TARIFAS_BASE).forEach(c=>{ const o=document.createElement('option');o.value=c;o.textContent=c;sel.appendChild(o); });
+  // Populate curso select (includes custom courses + "crear nuevo")
+  populateCursoSelectModal();
 
   if(id) {
     const a = ALUMNOS_PRELOAD.find(x=>x.id===id);
     if(a){
       $('ma_apellido').value=a.apellido;$('ma_apellido2').value=a.apellido2||'';
-      $('ma_nombre').value=a.nombre;$('ma_curso').value=a.curso;
+      $('ma_nombre').value=a.nombre;
+      // Ensure student's current course is in the select
+      const opts = [...$('ma_curso').options].map(o=>o.value);
+      if(a.curso && !opts.includes(a.curso)) {
+        const o=document.createElement('option');o.value=a.curso;o.textContent=a.curso;
+        $('ma_curso').insertBefore(o, $('ma_curso').lastElementChild);
+      }
+      $('ma_curso').value=a.curso;
       $('ma_responsable').value=a.responsable||'';$('ma_celular').value=a.celular||'';
       $('ma_horario').value=a.horario||'';$('ma_fecha').value=a.fecha||today();
       $('ma_estado').value=a.estado||'Activo';$('ma_familiar').value=String(a.familiar||0);
@@ -2893,14 +2898,52 @@ function guardarTarifasMayo(){
 
 // ── POPULATE SELECTS ──────────────────────────────
 function populateCursoSelects(){
-  const cursos=Object.keys(TARIFAS_BASE);
+  const cursos = getAllCursos();
   ['filtroCurso','filtroCursoCobrar'].forEach(selId=>{
     const sel=$(selId);if(!sel)return;
     const val=sel.value;
     sel.innerHTML=selId==='filtroCurso'?'<option value="">Todos los cursos</option>':'<option value="">— elegí un curso —</option>';
-    cursos.forEach(c=>{const o=document.createElement('option');o.value=c;o.textContent=c;sel.appendChild(o);});
+    cursos.forEach(c=>{const o=document.createElement('option');o.value=c;o.textContent=c.length>40?c.substring(0,40)+'…':c;sel.appendChild(o);});
     sel.value=val;
   });
+}
+
+function getAllCursos() {
+  // Merge: TARIFAS_BASE keys + existing student courses + custom courses
+  const set = new Set(Object.keys(TARIFAS_BASE));
+  ALUMNOS_PRELOAD.forEach(a => { if(a.curso) set.add(a.curso); });
+  const custom = loadJ('lets_cursos_custom') || [];
+  custom.forEach(c => set.add(c));
+  return [...set].sort((a,b) => a.localeCompare(b));
+}
+
+function populateCursoSelectModal() {
+  const sel = $('ma_curso');
+  const cursos = getAllCursos();
+  sel.innerHTML = '<option value="">— seleccioná —</option>';
+  cursos.forEach(c => { const o=document.createElement('option');o.value=c;o.textContent=c;sel.appendChild(o); });
+  sel.innerHTML += '<option value="__nuevo__" style="font-weight:bold;color:#2d9a6b">➕ Crear nuevo curso...</option>';
+}
+
+function handleCursoChange() {
+  const sel = $('ma_curso');
+  if(sel.value === '__nuevo__') {
+    const nombre = prompt('Ingresá el nombre del nuevo curso:');
+    if(nombre && nombre.trim()) {
+      const n = nombre.trim();
+      // Save to custom courses (local + Firebase)
+      const custom = loadJ('lets_cursos_custom') || [];
+      if(!custom.includes(n)) {
+        custom.push(n);
+        saveJ('lets_cursos_custom', custom);
+        if(window.FS) FS.set('config', 'cursos_custom', { cursos: custom });
+      }
+      populateCursoSelectModal();
+      sel.value = n;
+    } else {
+      sel.value = '';
+    }
+  }
 }
 
 // ── INIT ─────────────────────────────────────────
@@ -3126,11 +3169,16 @@ async function loadDataFromFirebase() {
       ALUMNOS_PRELOAD = [...ALUMNOS_BASE.filter(a=>!alumnosCustom.find(c=>c.id===a.id)), ...alumnosCustom];
     }
 
-    // Load tarifas mayo
+    // Load tarifas mayo + custom courses + haberes config
     const fsTarifas = await FS.getAll('config');
     for(const cfg of fsTarifas) {
       if(cfg._id === 'tarifas_mayo') { tarifasMayo = {...cfg}; delete tarifasMayo._id; saveJ(TARIFAS_MAYO_KEY, tarifasMayo); }
       if(cfg._id === 'haberes_cfg')  { saveJ(HCFG, {...cfg, _id:undefined}); }
+      if(cfg._id === 'cursos_custom' && cfg.cursos) {
+        const local = loadJ('lets_cursos_custom') || [];
+        const merged = [...new Set([...local, ...cfg.cursos])];
+        saveJ('lets_cursos_custom', merged);
+      }
     }
 
     // Load rentabilidad
