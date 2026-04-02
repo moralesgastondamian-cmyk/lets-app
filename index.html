@@ -2536,13 +2536,32 @@ function getHabTotalMes(mes) {
 }
 
 // ── Rentabilidad por curso: datos dinámicos ──
+function matchCursoAlumnos(cursoHab) {
+  // Match alumnos to a haberes course name (handles partial names from customized config)
+  const cn = cursoHab.toLowerCase().trim();
+  return ALUMNOS_PRELOAD.filter(a => {
+    if(a.estado !== 'Activo') return false;
+    const ac = a.curso.toLowerCase();
+    // Exact match
+    if(ac === cn) return true;
+    // Haberes name is prefix of student course (e.g. "kids 2" matches "kids 2 (2do grado)")
+    if(ac.startsWith(cn)) return true;
+    // Student course starts with haberes name before parenthesis
+    const cnBase = cn.replace(/\s*\(.*\)/, '').trim();
+    const acBase = ac.replace(/\s*\(.*\)/, '').trim();
+    if(cnBase && acBase === cnBase) return true;
+    return false;
+  });
+}
+
 function getCursoRentData(mes) {
   const cfg=getHabCfg(), data=getHabData(mes);
   const tarifas = mes==='Mayo'?tarifasMayo:TARIFAS_BASE;
   const result = [];
   let totalHorasInstituto = 0;
+  const alumnosAsignados = new Set(); // avoid double-counting
 
-  // Calcular horas totales del instituto (todos los docentes, todos los cursos)
+  // Calcular horas totales del instituto y datos por curso
   cfg.docentes.forEach(doc => {
     const clasesData=data.clases[doc.n]||{};
     doc.cursos.forEach(curso => {
@@ -2553,16 +2572,22 @@ function getCursoRentData(mes) {
       });
       totalHorasInstituto += horasCurso;
 
-      // Alumnos activos en este curso
-      const alumnosCurso = ALUMNOS_PRELOAD.filter(a=>a.estado==='Activo'&&a.curso===curso.c);
+      // Match alumnos to this course (fuzzy)
+      const alumnosCurso = matchCursoAlumnos(curso.c).filter(a => !alumnosAsignados.has(a.id));
+      alumnosCurso.forEach(a => alumnosAsignados.add(a.id));
       const cantAlumnos = alumnosCurso.length;
 
-      // Tarifa
-      const t = tarifas[curso.c] || Object.values(tarifas)[0];
+      // Tarifa: try exact match first, then fuzzy
+      let t = tarifas[curso.c];
+      if(!t) {
+        const tKey = Object.keys(tarifas).find(k => k.toLowerCase().startsWith(curso.c.toLowerCase().replace(/\s*\(.*\)/,'').trim()));
+        t = tKey ? tarifas[tKey] : Object.values(tarifas)[0];
+      }
       const ingresoTeorico = cantAlumnos * t.transferencia;
 
       // Ingreso real cobrado
-      const pagadoCurso = pagos.filter(p=>p.mes===mes&&p.concepto==='Cuota mensual'&&alumnosCurso.some(a=>a.id===p.alumnoId));
+      const alumnoIds = new Set(alumnosCurso.map(a=>a.id));
+      const pagadoCurso = pagos.filter(p=>p.mes===mes&&p.concepto==='Cuota mensual'&&alumnoIds.has(p.alumnoId));
       const ingresoReal = pagadoCurso.reduce((s,p)=>s+p.total,0);
       const alumnosPagaron = pagadoCurso.length;
 
@@ -2647,8 +2672,11 @@ function renderRentabilidad() {
         ${g.nota?`<div style="font-size:10px;color:var(--muted)">${g.nota}</div>`:''}
       </div>
       <span class="gasto-badge ${g.tipo==='variable'?'gasto-variable':''}">${g.tipo}</span>
-      <input type="number" class="gasto-input" id="gasto_${g.key}" value="${g.valor}"
-        oninput="recalcEgresos('${mes}')" style="width:130px;text-align:right;font-size:13px">
+      <div style="display:flex;align-items:center;gap:6px">
+        <input type="number" class="gasto-input" id="gasto_${g.key}" value="${g.valor}"
+          oninput="recalcEgresos('${mes}');updFmt('gasto_${g.key}')" style="width:120px;text-align:right;font-size:13px">
+        <span id="fmt_gasto_${g.key}" style="font-size:12px;font-weight:600;color:var(--navy);min-width:90px;text-align:right">${fmt(g.valor)}</span>
+      </div>
       ${isSueldos?`<button class="btn btn-ghost btn-sm" onclick="syncSueldos('${mes}')" title="Traer dato de Haberes" style="padding:4px 7px;margin-left:2px">🔄</button>`:''}
     </div>`;
   }).join('');
@@ -2661,8 +2689,11 @@ function renderRentabilidad() {
           style="border:1px dashed var(--border);padding:4px 8px;border-radius:5px;font-size:13px;width:100%">
       </div>
       <span class="gasto-badge" style="background:#fde8e5;color:#7a1a10">extra</span>
-      <input type="number" value="${g.valor}" onchange="updateExtraValor('${mes}',${i},this.value)"
-        style="width:130px;text-align:right;font-size:13px;border:1.5px solid var(--border);border-radius:7px;padding:9px 12px">
+      <div style="display:flex;align-items:center;gap:6px">
+        <input type="number" id="extra_val_${i}" value="${g.valor}" onchange="updateExtraValor('${mes}',${i},this.value);updFmt('extra_val_${i}')"
+          style="width:120px;text-align:right;font-size:13px;border:1.5px solid var(--border);border-radius:7px;padding:9px 12px">
+        <span id="fmt_extra_val_${i}" style="font-size:12px;font-weight:600;color:var(--navy);min-width:90px;text-align:right">${fmt(g.valor)}</span>
+      </div>
       <button class="btn btn-danger btn-sm" onclick="eliminarExtra('${mes}',${i})" style="margin-left:4px">✕</button>
     </div>`).join('');
   $('rentEgresosExtra').innerHTML = extraHtml || '';
@@ -2701,10 +2732,10 @@ function renderRentabilidad() {
       <th>Mg. Bruto</th><th>Mg. Neto</th>
     </tr></thead><tbody>`;
 
-  let totTeo=0, totReal=0, totDoc=0, totInd=0, totBruto=0, totNeto=0;
+  let totTeo=0, totReal=0, totDoc=0, totInd=0, totBruto=0, totNeto=0, totAl=0, totPag=0;
   rd.cursos.forEach(c => {
     totTeo+=c.ingresoTeorico; totReal+=c.ingresoReal; totDoc+=c.costoDocente; totInd+=c.gastoIndirecto;
-    totBruto+=c.margenBruto; totNeto+=c.margenNeto;
+    totBruto+=c.margenBruto; totNeto+=c.margenNeto; totAl+=c.cantAlumnos; totPag+=c.alumnosPagaron;
     tabHtml+=`<tr>
       <td style="font-size:10px;max-width:120px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${c.curso}">${c.curso.length>25?c.curso.substring(0,25)+'…':c.curso}</td>
       <td style="font-size:11px">${c.docente}</td>
@@ -2721,7 +2752,9 @@ function renderRentabilidad() {
     </tr>`;
   });
   tabHtml+=`<tr style="background:var(--navy);color:#fff;font-weight:700">
-    <td colspan="4" style="color:#fff">TOTAL</td>
+    <td colspan="2" style="color:#fff">TOTAL</td>
+    <td style="color:#fff;text-align:center">${totAl}</td>
+    <td style="color:#fff;text-align:center">${totPag}</td>
     <td style="color:#fff;white-space:nowrap">${fmt(totTeo)}</td>
     <td style="color:#fff;white-space:nowrap">${fmt(totReal)}</td>
     <td style="color:#fff;white-space:nowrap">${fmt(totDoc)}</td>
@@ -2735,7 +2768,13 @@ function renderRentabilidad() {
 function syncSueldos(mes) {
   const hab = getHabTotalMes(mes);
   const el = $('gasto_sueldos');
-  if(el) { el.value = hab.total; recalcEgresos(mes); }
+  if(el) { el.value = hab.total; updFmt('gasto_sueldos'); recalcEgresos(mes); }
+}
+
+function updFmt(inputId) {
+  const el = $(inputId);
+  const fmtEl = $('fmt_'+inputId);
+  if(el && fmtEl) fmtEl.textContent = fmt(parseFloat(el.value)||0);
 }
 
 function recalcEgresos(mes) {
