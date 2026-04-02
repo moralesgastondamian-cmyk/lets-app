@@ -3309,7 +3309,23 @@ function importPagos(){
 if('serviceWorker' in navigator) {
   window.addEventListener('load', () => {
     navigator.serviceWorker.register('sw.js')
-      .then(r => console.log('SW registered'))
+      .then(reg => {
+        console.log('SW registered');
+        // Check for updates every 60 seconds
+        setInterval(() => reg.update(), 60000);
+        reg.addEventListener('updatefound', () => {
+          const nw = reg.installing;
+          nw.addEventListener('statechange', () => {
+            if(nw.state === 'activated') {
+              // Show update banner
+              const b = document.createElement('div');
+              b.style.cssText = 'position:fixed;bottom:0;left:0;right:0;background:#0f1f3d;color:#fff;padding:12px 20px;font-size:13px;font-family:DM Sans,sans-serif;display:flex;justify-content:space-between;align-items:center;z-index:9999;box-shadow:0 -4px 12px rgba(0,0,0,.2)';
+              b.innerHTML = '<span>🔄 Hay una nueva versión disponible</span><button onclick="location.reload()" style="background:#e8a020;color:#fff;border:none;padding:8px 18px;border-radius:6px;font-weight:700;cursor:pointer;font-family:DM Sans,sans-serif">Actualizar</button>';
+              document.body.appendChild(b);
+            }
+          });
+        });
+      })
       .catch(e => console.log('SW error:', e));
   });
 }
