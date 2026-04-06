@@ -3758,6 +3758,13 @@ function viewComp(doc){
         if(cl.presente){thrs+=parseFloat(cl.h)||0;lineas.push({l:`${fmtFecha(fecha)} — ${curso.c.length>30?curso.c.substring(0,30)+'…':curso.c}`,h:parseFloat(cl.h)||0,m:(parseFloat(cl.h)||0)*vh,aj:false});}
       });
     });
+    // Horas extra / ajustes
+    const aj=(data.ajustes&&data.ajustes[doc])||[];
+    aj.forEach(a=>{
+      const h=parseFloat(a.h||0);
+      thrs+=h;
+      lineas.push({l:`⏱ ${a.desc||'Hora extra'}${a.fecha?' — '+fmtFecha(a.fecha):''}`,h,m:h*vh,aj:true});
+    });
   }
 
   const total=thrs*vh,nlStr=(data.nl||[]).length?(data.nl||[]).sort().map(d=>fmtFecha(d)).join(', '):'Ninguno';
@@ -3769,7 +3776,7 @@ function viewComp(doc){
     <div class="crow2"><span>Valor hora</span><strong>${fmt(vh)}</strong></div>
     <div class="crow2"><span>Días no laborables</span><span>${nlStr}</span></div>
     <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--muted);margin:10px 0 5px">Detalle de clases / días trabajados</div>
-    ${lineas.map(l=>`<div class="crow2"><span>${l.l}</span><span>${l.h}h · ${fmt(l.m)}</span></div>`).join('')}
+    ${lineas.map(l=>`<div class="crow2"${l.aj?' style="color:var(--green)"':''}><span>${l.l}</span><span>${l.h>0&&l.aj?'+':''}${l.h}h · ${fmt(l.m)}</span></div>`).join('')}
     ${!lineas.length?'<div style="color:var(--muted);font-size:12px;text-align:center;padding:10px">Sin horas registradas</div>':''}
     <div class="ctotal"><span>TOTAL (${thrs.toFixed(1)}h)</span><span>${fmt(total)}</span></div>
     <div style="text-align:center;margin-top:14px;font-size:10px;color:var(--muted)">Emitido ${new Date().toLocaleDateString('es-AR')} · Let's Innovation English Institute</div>
@@ -3793,6 +3800,12 @@ function downloadComp(){
         const key=`${_compDoc}|${fecha}|${curso.c}`;const cl=clasesData[key]||{presente:true,h:curso.h};
         if(cl.presente){const h=parseFloat(cl.h)||0;thrs+=h;lineas.push([`${fmtFecha(fecha)} — ${curso.c.length>28?curso.c.substring(0,28)+'…':curso.c}`,h,h*vh]);}
       });
+    });
+    // Horas extra / ajustes
+    const aj=(data.ajustes&&data.ajustes[_compDoc])||[];
+    aj.forEach(a=>{
+      const h=parseFloat(a.h||0);thrs+=h;
+      lineas.push([`⏱ ${a.desc||'Extra'}${a.fecha?' — '+fmtFecha(a.fecha):''}`,h,h*vh]);
     });
   }
   const doc2=new jsPDF({unit:'mm',format:'a5',orientation:'portrait'});

@@ -3,7 +3,7 @@
 // ════════════════════════════════════════════════
 // INSTRUCCIÓN: Cada vez que subas un cambio al index.html,
 // incrementá el número de CACHE_VERSION para forzar la actualización.
-const CACHE_VERSION = 'lets-v7';
+const CACHE_VERSION = 'lets-v8';
 
 const ASSETS = [
   './',
