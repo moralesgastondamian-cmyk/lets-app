@@ -3213,6 +3213,24 @@ function startApp(){
   // Normalize to new format
   CU.n = nombre; CU.r = rol; CU.a = acc;
 
+  // ── Auto-migrate permissions: ensure talonario exists ──
+  const ALL_PERMS = ['dashboard','alumnos','cobrar','historial','morosos','rentabilidad','tarifas','haberes','talonario','auditoria','usuarios','canDelete'];
+  let changed = false;
+  if(rol === 'admin') {
+    // Admin gets everything
+    ALL_PERMS.forEach(p => { if(!CU.a.includes(p)){ CU.a.push(p); changed=true; } });
+  } else {
+    // For non-admin: if they have haberes, also give talonario (was a bug)
+    if(CU.a.includes('haberes') && !CU.a.includes('talonario')){ CU.a.push('talonario'); changed=true; }
+  }
+  if(changed) {
+    // Persist fix to localStorage and Firebase
+    let us = loadJ(UK) || [];
+    const idx = us.findIndex(u => u.id === CU.id);
+    if(idx >= 0) { us[idx].a = CU.a; saveJ(UK, us); }
+    if(window.FS) FS.set('usuarios', CU.id, CU);
+  }
+
   $('loginOverlay').style.display='none';
   $('UB').style.display='flex';
   $('UAV').textContent=(nombre[0]||'?').toUpperCase();
