@@ -3378,7 +3378,7 @@ function editUser(id){
   $('MUFT').textContent='Editar usuario';$('FUI').value=id;
   $('FUN').value=u.n;$('FUU').value=u.u;$('FUP').value='';$('FUP2').value='';
   $('FUR').value=u.r;$('FUA').value=String(u.on);
-  const all=['dashboard','alumnos','cobrar','historial','morosos','rentabilidad','tarifas','haberes','auditoria','usuarios','canDelete'];
+  const all=['dashboard','alumnos','cobrar','historial','morosos','rentabilidad','tarifas','haberes','talonario','auditoria','usuarios','canDelete'];
   all.forEach(x=>{const e=$('AC_'+x);if(e)e.checked=(u.a||[]).includes(x);});
   $('MUF').classList.add('active');
 }
@@ -3397,7 +3397,7 @@ function saveUser(){
   if(!id&&!ps){alert('Contraseña obligatoria para usuarios nuevos');return;}
   if(ps&&ps.length<6){alert('Mínimo 6 caracteres');return;}
   if(ps&&ps!==ps2){alert('Las contraseñas no coinciden');return;}
-  const all=['dashboard','alumnos','cobrar','historial','morosos','rentabilidad','tarifas','haberes','auditoria','usuarios','canDelete'];
+  const all=['dashboard','alumnos','cobrar','historial','morosos','rentabilidad','tarifas','haberes','talonario','auditoria','usuarios','canDelete'];
   const a=all.filter(x=>{const e=$('AC_'+x);return e&&e.checked;});
   let users=loadJ(UK)||[];
   if(users.find(u=>u.u===us&&u.id!==id)){alert('Ese usuario ya existe');return;}
