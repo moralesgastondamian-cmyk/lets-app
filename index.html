@@ -427,6 +427,7 @@ td{padding:9px 12px;vertical-align:middle}
   <div class="tab" onclick="showPage('rentabilidad')">📈 Rentabilidad</div>
   <div class="tab" onclick="showPage('tarifas')">💰 Tarifas</div>
   <div class="tab" onclick="showPage('haberes')">👩‍🏫 Haberes</div>
+  <div class="tab" onclick="showPage('talonario')">🖨 Talonario</div>
 </div>
 
 <!-- ══════════ DASHBOARD ══════════ -->
@@ -1456,10 +1457,12 @@ function getRentMes(mes) {
 function showPage(name) {
   document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
   document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
-  $('page-'+name).classList.add('active');
-  const tabs = document.querySelectorAll('.tab');
-  const map = {dashboard:0,alumnos:1,cobrar:2,historial:3,morosos:4,rentabilidad:5,tarifas:6};
-  if(map[name]!==undefined) tabs[map[name]].classList.add('active');
+  const page = $('page-'+name);
+  if(page) page.classList.add('active');
+  // Find matching tab dynamically (works regardless of which tabs are visible)
+  document.querySelectorAll('.tab').forEach(t=>{
+    if(t.getAttribute('onclick')&&t.getAttribute('onclick').includes("'"+name+"'")) t.classList.add('active');
+  });
   if(name==='dashboard') renderDashboard();
   if(name==='alumnos') renderAlumnos();
   if(name==='historial') renderHistorial();
@@ -4373,8 +4376,8 @@ function imprimirTalonario() {
     }
 
     // Draw LEFT half (alumno) and RIGHT half (instituto)
-    drawHalf(0, false);        // left = alumno copy
-    drawHalf(midX, true);      // right = instituto copy
+    drawHalf(0, true);         // left = instituto copy
+    drawHalf(midX, false);     // right = alumno copy
   });
 
   doc.save(`Talonario_${mes}_2026${curso?'_'+curso.substring(0,15):''}.pdf`);
