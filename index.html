@@ -987,6 +987,7 @@ td{padding:9px 12px;vertical-align:middle}
   <div id="MCHContent"></div>
   <div class="btn-row" style="justify-content:center;margin-top:12px">
     <button class="btn btn-accent" onclick="downloadComp()">⬇ PDF</button>
+    <button class="btn btn-green" onclick="downloadCompJPG()">🖼 JPG</button>
     <button class="btn btn-ghost" onclick="document.getElementById('MCH').classList.remove('active')">Cerrar</button>
   </div>
 </div></div>
@@ -3827,6 +3828,22 @@ function downloadComp(){
   y+=18;doc2.setFont('helvetica','normal');doc2.setFontSize(7.5);doc2.setTextColor(120,116,112);
   doc2.text(`Emitido ${new Date().toLocaleDateString('es-AR')} · Let's Innovation English Institute`,W/2,y,{align:'center'});
   doc2.save(`Haberes_${nm.replace(/ /g,'_')}_${mes}_2026.pdf`);
+}
+
+function downloadCompJPG(){
+  const el = $('MCHContent').querySelector('.comp');
+  if(!el) return;
+  const mes=$('habMes').value, cfg=getHabCfg();
+  const esA=_compDoc==='__admin__', nm=esA?(cfg.admin.n||'Administrativo'):_compDoc;
+  html2canvas(el, {scale:2, backgroundColor:'#ffffff', useCORS:true, logging:false}).then(canvas=>{
+    canvas.toBlob(blob=>{
+      const a=document.createElement('a');
+      a.href=URL.createObjectURL(blob);
+      a.download=`Haberes_${nm.replace(/ /g,'_')}_${mes}_2026.jpg`;
+      a.click();
+      URL.revokeObjectURL(a.href);
+    },'image/jpeg',0.92);
+  });
 }
 
 function guardarHaberes(){const mes=$('habMes').value;saveHabData(mes,getHabData(mes));alert(`✅ ${mes} guardado`);}
