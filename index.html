@@ -1438,10 +1438,10 @@ const ALUMNOS_BASE = [
   {id:105,apellido:"Graells Alonso",apellido2:"",nombre:"Pía",curso:"Kinder (Sala de 5)",responsable:"Vanina Alonso",celular:"1165296854",horario:"Martes y jueves 18 a 19 hs",fecha:"2026-03-19",estado:"Activo",familiar:0,obs:""},
 ];
 
-// Merge base + custom alumnos
+// Merge base + custom alumnos (custom overrides base)
 let alumnosCustom = loadJ(ALUMNOS_KEY) || [];
-let ALUMNOS_PRELOAD = [...ALUMNOS_BASE, ...alumnosCustom];
-let nextAlumnoId = ALUMNOS_PRELOAD.length ? Math.max(...ALUMNOS_PRELOAD.map(a=>a.id))+1 : 106;
+let ALUMNOS_PRELOAD = [...ALUMNOS_BASE.filter(a=>!alumnosCustom.find(c=>c.id===a.id)), ...alumnosCustom];
+let nextAlumnoId = ALUMNOS_PRELOAD.length ? Math.max(...ALUMNOS_PRELOAD.map(a=>a.id||0))+1 : 106;
 
 // Pagos
 let pagos = loadJ(STORAGE_KEY) || [];
@@ -1700,6 +1700,12 @@ function guardarAlumno() {
   const cr = $('ma_curso').value;
   const rs = $('ma_responsable').value.trim();
   if(!ap||!nm||!cr||!rs){ alert('Completá los campos obligatorios (*)'); return; }
+
+  // Ensure no ID collision for new students
+  if(!editingAlumnoId) {
+    const allIds = new Set(ALUMNOS_PRELOAD.map(a=>a.id));
+    while(allIds.has(nextAlumnoId)) nextAlumnoId++;
+  }
 
   const alumno = {
     id: editingAlumnoId || nextAlumnoId++,
@@ -3300,6 +3306,8 @@ async function loadDataFromFirebase() {
       alumnosCustom = fsAlumnos;
       saveJ(ALUMNOS_KEY, alumnosCustom);
       ALUMNOS_PRELOAD = [...ALUMNOS_BASE.filter(a=>!alumnosCustom.find(c=>c.id===a.id)), ...alumnosCustom];
+      // CRITICAL: recalculate next ID to avoid collisions
+      nextAlumnoId = Math.max(...ALUMNOS_PRELOAD.map(a=>a.id||0)) + 1;
     }
 
     // Load tarifas mayo + custom courses + haberes config
