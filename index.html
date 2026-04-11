@@ -1616,6 +1616,7 @@ function renderAlumnos() {
         <button class="btn btn-ghost btn-sm" onclick="openEC(${a.id})" title="Estado de cuenta" style="padding:4px 7px">📊</button>
         <button class="btn btn-ghost btn-sm" onclick="verAlumno(${a.id})" title="Ver detalle" style="padding:4px 7px">👁</button>
         <button class="btn btn-ghost btn-sm" onclick="abrirModalAlumno(${a.id})" title="Editar" style="padding:4px 7px">✏️</button>
+        <button class="btn btn-danger btn-sm" onclick="eliminarAlumno(${a.id})" title="Eliminar alumno" style="padding:4px 7px">🗑</button>
       </div>
     </div>`;
   }).join('');
@@ -1693,6 +1694,36 @@ function abrirModalAlumno(id) {
 }
 
 function cerrarModalAlumno(){ $('modalAlumno').classList.remove('active'); editingAlumnoId=null; }
+
+function eliminarAlumno(id) {
+  const a = ALUMNOS_PRELOAD.find(x=>x.id===id);
+  if(!a) return;
+  const pagosA = pagos.filter(p=>p.alumnoId===id);
+  const msg = pagosA.length
+    ? `¿Eliminar a ${a.apellido}, ${a.nombre}?\n\n⚠️ Este alumno tiene ${pagosA.length} pago(s) registrado(s). Los pagos NO se eliminan.`
+    : `¿Eliminar a ${a.apellido}, ${a.nombre}?`;
+  if(!confirm(msg)) return;
+
+  // Remove from custom
+  alumnosCustom = alumnosCustom.filter(c=>c.id!==id);
+  saveJ(ALUMNOS_KEY, alumnosCustom);
+  // Rebuild ALUMNOS_PRELOAD
+  ALUMNOS_PRELOAD = [...ALUMNOS_BASE.filter(b=>!alumnosCustom.find(c=>c.id===b.id)), ...alumnosCustom];
+  // If it was a base alumno, add to custom as "deleted" (estado Inactivo)
+  const wasBase = ALUMNOS_BASE.find(b=>b.id===id);
+  if(wasBase) {
+    const deleted = {...wasBase, estado:'Inactivo'};
+    alumnosCustom.push(deleted);
+    saveJ(ALUMNOS_KEY, alumnosCustom);
+    ALUMNOS_PRELOAD = [...ALUMNOS_BASE.filter(b=>!alumnosCustom.find(c=>c.id===b.id)), ...alumnosCustom];
+  } else {
+    // Custom alumno: delete from Firebase
+    if(window.FS) FS.del('alumnos_custom', String(id));
+  }
+  renderAlumnos();
+  populateCursoSelects();
+  alert(`✅ ${a.apellido}, ${a.nombre} eliminado`);
+}
 
 function guardarAlumno() {
   const ap = $('ma_apellido').value.trim();
