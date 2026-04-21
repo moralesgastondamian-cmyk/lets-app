@@ -1019,7 +1019,7 @@ td{padding:9px 12px;vertical-align:middle}
     </div>
     <div class="alert alert-amber" style="margin-bottom:14px">
       <span class="alert-icon">ℹ️</span>
-      <div>El talonario tiene <strong>5 comprobantes por hoja A4</strong> para recortar. Los datos de efectivo y transferencia se muestran para tachar lo que no corresponda. Campos de fecha y cobrador se completan a mano.</div>
+      <div>El talonario tiene <strong>4 comprobantes por hoja A4</strong> para recortar. Los valores de efectivo y transferencia ya incluyen el descuento familiar cuando corresponde. Campos de fecha y cobrador se completan a mano.</div>
     </div>
     <div id="talCount" style="font-size:12px;color:var(--muted);margin-bottom:10px"></div>
     <div id="talPreview"></div>
@@ -4278,19 +4278,23 @@ function renderTalonario() {
   $('talPreview').innerHTML = `
     <div style="border:1px solid var(--border);border-radius:8px;overflow:hidden;margin-top:8px">
       <div style="background:var(--navy);color:#fff;padding:8px 14px;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.4px">
-        Vista previa — primeros ${Math.min(5,alumnos.length)} comprobantes de ${alumnos.length} total
+        Vista previa — primeros ${Math.min(4,alumnos.length)} comprobantes de ${alumnos.length} total
       </div>
-      ${alumnos.slice(0,5).map(a=>{
+      ${alumnos.slice(0,4).map(a=>{
         const t = getTarifa(a.curso, mes);
+        const hasFam = a.familiar===1;
+        const efVal = hasFam ? Math.round(t.efectivo*0.95) : t.efectivo;
+        const trVal = hasFam ? Math.round(t.transferencia*0.95) : t.transferencia;
         const bonif = a.bonif_tipo&&a.bonif_tipo!=='ninguna' ? `Bonif: ${a.bonif_tipo==='beca'?'100%':a.bonif_tipo==='porc'?a.bonif_val+'%':fmt(a.bonif_val)}` : '';
-        return `<div style="padding:12px 16px;border-bottom:1px solid var(--sand);display:grid;grid-template-columns:2fr 2fr 1fr 1fr;gap:10px;align-items:center;font-size:12px">
+        return `<div style="padding:12px 16px;border-bottom:1px solid var(--sand);display:grid;grid-template-columns:2fr 2fr 1fr 1fr auto;gap:10px;align-items:center;font-size:12px">
           <div><strong>${a.apellido}, ${a.nombre}</strong></div>
           <div style="color:var(--muted)">${a.curso.length>30?a.curso.substring(0,30)+'…':a.curso}</div>
-          <div style="color:#375623;font-weight:600">Ef: ${fmt(t.efectivo)}</div>
-          <div style="color:#4B1A7A;font-weight:600">Tr: ${fmt(t.transferencia)}</div>
+          <div style="color:#375623;font-weight:600">Ef: ${fmt(efVal)}</div>
+          <div style="color:#4B1A7A;font-weight:600">Tr: ${fmt(trVal)}</div>
+          <div>${hasFam?'<span class="pill pill-blue">fam</span>':''}${bonif?'<span class="pill pill-amber" style="margin-left:3px">'+bonif+'</span>':''}</div>
         </div>`;
       }).join('')}
-      ${alumnos.length>5?`<div style="padding:10px 16px;font-size:12px;color:var(--muted);text-align:center">... y ${alumnos.length-5} más</div>`:''}
+      ${alumnos.length>4?`<div style="padding:10px 16px;font-size:12px;color:var(--muted);text-align:center">... y ${alumnos.length-4} más</div>`:''}
     </div>`;
 }
 
@@ -4305,23 +4309,30 @@ function imprimirTalonario() {
 
   const doc = new jsPDF({unit:'mm', format:'a4', orientation:'portrait'});
   const PW=210, PH=297;
-  const perPage=5;
-  const rowH = Math.floor(PH / perPage);  // ~59mm per row
-  const midX = PW / 2;                    // 105mm — vertical perforation line
+  const perPage=4;
+  const rowH = Math.floor(PH / perPage);  // ~74mm per row
+  const midX = PW / 2;
   const pad  = 6;
-  const halfW = midX - pad * 2;           // usable width per half ~93mm
+  const halfW = midX - pad * 2;
+  const rh = 7; // row height for table cells
+  const fs = 8; // base font size
+  const fsL = 7.5; // label font size
 
   alumnos.forEach((a, idx) => {
     const pagePos = idx % perPage;
     if(pagePos === 0 && idx > 0) doc.addPage();
 
     const y0  = pagePos * rowH;
-    const yMid = y0 + rowH / 2;
     const t   = getTarifa(a.curso, mes);
     const nombre = `${a.apellido}, ${a.nombre}`;
-    const cursoStr = a.curso.length>32 ? a.curso.substring(0,32)+'…' : a.curso;
+    const cursoStr = a.curso.length>35 ? a.curso.substring(0,35)+'…' : a.curso;
 
-    // ── Horizontal cut line between rows ─────────────────
+    // Family discount calculations
+    const hasFam = a.familiar === 1;
+    const efFam = hasFam ? Math.round(t.efectivo * 0.95) : t.efectivo;
+    const trFam = hasFam ? Math.round(t.transferencia * 0.95) : t.transferencia;
+
+    // ── Horizontal cut line between rows
     if(pagePos > 0) {
       doc.setLineDashPattern([1.5, 1.5], 0);
       doc.setDrawColor(160, 160, 160);
@@ -4330,130 +4341,126 @@ function imprimirTalonario() {
       doc.setLineDashPattern([], 0);
     }
 
-    // ── Vertical perforation line (center) ───────────────
+    // ── Vertical perforation line (center)
     doc.setLineDashPattern([1.5, 1.5], 0);
     doc.setDrawColor(120, 120, 120);
     doc.setLineWidth(0.4);
     doc.line(midX, y0+2, midX, y0+rowH-2);
     doc.setLineDashPattern([], 0);
 
-    // ── Draw one half ─────────────────────────────────────
+    // ── Draw one half
     function drawHalf(xOff, isInstituto) {
-      let y = y0 + 3;
+      let y = y0 + 4;
       const xL = xOff + pad;
       const xR = xOff + halfW + pad;
+      const labelW = 26;
 
       // Logo
-      try { doc.addImage(LOGO_B64,'PNG', xL, y, 10, 8); } catch(e){}
+      try { doc.addImage(LOGO_B64,'PNG', xL, y, 12, 10); } catch(e){}
 
       // Header
-      doc.setFont('helvetica','bold'); doc.setFontSize(7.5); doc.setTextColor(15,31,61);
-      doc.text("LET'S Innovation English Institute", xL+12, y+4.5);
-      doc.setFont('helvetica','normal'); doc.setFontSize(6); doc.setTextColor(120,120,120);
-      doc.text("Bernal · WA 15-4087-1571", xL+12, y+8);
+      doc.setFont('helvetica','bold'); doc.setFontSize(9); doc.setTextColor(15,31,61);
+      doc.text("LET'S Innovation English Institute", xL+14, y+5);
+      doc.setFont('helvetica','normal'); doc.setFontSize(7); doc.setTextColor(120,120,120);
+      doc.text("Bernal · WA 15-4087-1571", xL+14, y+9.5);
 
       // Badge: ALUMNO or INSTITUTO
       const badgeColor = isInstituto ? [15,31,61] : [112,48,160];
       doc.setFillColor(...badgeColor);
-      doc.roundedRect(xR-20, y+1, 20, 7, 1.5, 1.5, 'F');
-      doc.setFont('helvetica','bold'); doc.setFontSize(6); doc.setTextColor(255,255,255);
-      doc.text(isInstituto ? 'INSTITUTO' : 'ALUMNO', xR-10, y+5.5, {align:'center'});
+      doc.roundedRect(xR-22, y+1, 22, 8, 2, 2, 'F');
+      doc.setFont('helvetica','bold'); doc.setFontSize(7); doc.setTextColor(255,255,255);
+      doc.text(isInstituto ? 'INSTITUTO' : 'ALUMNO', xR-11, y+6.5, {align:'center'});
 
-      y += 13;
+      y += 16;
 
       // Mes badge
-      doc.setFont('helvetica','bold'); doc.setFontSize(7); doc.setTextColor(15,31,61);
+      doc.setFont('helvetica','bold'); doc.setFontSize(9); doc.setTextColor(15,31,61);
       doc.text(`${mes} 2026`, xL, y);
-      y += 5;
+      y += 6;
 
       // Table rows
-      const rowData = [
-        ['Alumno', nombre.length>30 ? nombre.substring(0,30)+'…' : nombre],
-        ['Curso',  cursoStr.length>30 ? cursoStr.substring(0,30)+'…' : cursoStr],
-      ];
-
       doc.setDrawColor(200,200,200); doc.setLineWidth(0.2);
 
-      rowData.forEach(([label, val]) => {
+      function tableRow(label, val, opts) {
         doc.setFillColor(240,242,246);
-        doc.rect(xL, y, 22, 5.5, 'F');
-        doc.rect(xL, y, halfW, 5.5, 'S');
-        doc.line(xL+22, y, xL+22, y+5.5);
-        doc.setFont('helvetica','bold'); doc.setFontSize(6.5); doc.setTextColor(60,60,60);
-        doc.text(label, xL+1.5, y+3.8);
-        doc.setFont('helvetica','normal'); doc.setTextColor(0,0,0);
-        doc.text(val, xL+23.5, y+3.8);
-        y += 5.5;
-      });
+        doc.rect(xL, y, labelW, rh, 'F');
+        doc.rect(xL, y, halfW, rh, 'S');
+        doc.line(xL+labelW, y, xL+labelW, y+rh);
+        doc.setFont('helvetica','bold'); doc.setFontSize(fsL); doc.setTextColor(60,60,60);
+        doc.text(label, xL+2, y+5);
+        if(opts && opts.color) doc.setTextColor(...opts.color);
+        else doc.setTextColor(0,0,0);
+        doc.setFont('helvetica', opts && opts.bold ? 'bold' : 'normal'); doc.setFontSize(fs);
+        doc.text(val, xL+labelW+2, y+5);
+        y += rh;
+      }
 
-      // Forma de pago row — double column
+      tableRow('Alumno', nombre.length>28 ? nombre.substring(0,28)+'…' : nombre, {bold:true});
+      tableRow('Curso', cursoStr.length>28 ? cursoStr.substring(0,28)+'…' : cursoStr);
+
+      // Forma de pago row — split into two columns
       doc.setFillColor(240,242,246);
-      doc.rect(xL, y, 22, 5.5, 'F');
-      doc.rect(xL, y, halfW, 5.5, 'S');
-      doc.line(xL+22, y, xL+22, y+5.5);
-      doc.line(xL+22+(halfW-22)/2, y, xL+22+(halfW-22)/2, y+5.5);
-      doc.setFont('helvetica','bold'); doc.setFontSize(6.5); doc.setTextColor(60,60,60);
-      doc.text('Forma de pago', xL+1.5, y+3.8);
-      // Efectivo (green)
-      doc.setTextColor(55,86,35); doc.setFont('helvetica','bold'); doc.setFontSize(7);
-      doc.text(`Ef: ${fmt(t.efectivo)}`, xL+23.5, y+3.8);
-      // Transferencia (violet)
-      doc.setTextColor(75,26,122); doc.setFont('helvetica','bold');
-      doc.text(`Tr: ${fmt(t.transferencia)}`, xL+22+(halfW-22)/2+1.5, y+3.8);
-      y += 5.5;
+      doc.rect(xL, y, labelW, rh, 'F');
+      doc.rect(xL, y, halfW, rh, 'S');
+      doc.line(xL+labelW, y, xL+labelW, y+rh);
+      const midCol = xL+labelW+(halfW-labelW)/2;
+      doc.line(midCol, y, midCol, y+rh);
+      doc.setFont('helvetica','bold'); doc.setFontSize(fsL); doc.setTextColor(60,60,60);
+      doc.text('Forma de pago', xL+2, y+5);
+      // Efectivo
+      doc.setTextColor(55,86,35); doc.setFont('helvetica','bold'); doc.setFontSize(fs);
+      doc.text(`Ef: ${fmt(efFam)}`, xL+labelW+2, y+5);
+      // Transferencia
+      doc.setTextColor(75,26,122);
+      doc.text(`Tr: ${fmt(trFam)}`, midCol+2, y+5);
+      y += rh;
+
+      // Family discount indicator
+      if(hasFam) {
+        doc.setFillColor(221,232,245);
+        doc.rect(xL, y, halfW, rh, 'F');
+        doc.rect(xL, y, halfW, rh, 'S');
+        doc.setFont('helvetica','bold'); doc.setFontSize(fsL); doc.setTextColor(26,58,107);
+        doc.text('🏷 Desc. familiar 5% ya aplicado en los valores', xL+2, y+5);
+        y += rh;
+      }
 
       // Bonif if exists
       if(a.bonif_tipo && a.bonif_tipo !== 'ninguna') {
         const bl = a.bonif_tipo==='beca'?'BECA 100%':a.bonif_tipo==='porc'?`Bonif. ${a.bonif_val}%`:`Bonif. ${fmt(a.bonif_val)}`;
-        doc.setFillColor(240,242,246);
-        doc.rect(xL, y, 22, 5.5, 'F');
-        doc.rect(xL, y, halfW, 5.5, 'S');
-        doc.line(xL+22, y, xL+22, y+5.5);
-        doc.setFont('helvetica','bold'); doc.setFontSize(6.5); doc.setTextColor(60,60,60);
-        doc.text('Bonificación', xL+1.5, y+3.8);
-        doc.setFont('helvetica','bold'); doc.setTextColor(112,48,160);
-        doc.text(bl, xL+23.5, y+3.8);
-        y += 5.5;
+        tableRow('Bonificación', bl, {color:[112,48,160], bold:true});
       }
 
-      // Monto abonado row
-      doc.setFillColor(240,242,246);
-      doc.rect(xL, y, 22, 5.5, 'F');
-      doc.rect(xL, y, halfW, 5.5, 'S');
-      doc.line(xL+22, y, xL+22, y+5.5);
-      doc.setFont('helvetica','bold'); doc.setFontSize(6.5); doc.setTextColor(60,60,60);
-      doc.text('Monto abonado', xL+1.5, y+3.8);
-      doc.setFont('helvetica','normal'); doc.setTextColor(0,0,0);
-      doc.text('$', xL+23.5, y+3.8);
-      y += 5.5;
+      // Monto abonado
+      tableRow('Monto abonado', '$');
 
-      // Fecha row
+      // Fecha
       doc.setFillColor(240,242,246);
-      doc.rect(xL, y, 22, 5.5, 'F');
-      doc.rect(xL, y, halfW, 5.5, 'S');
-      doc.line(xL+22, y, xL+22, y+5.5);
-      doc.setFont('helvetica','bold'); doc.setFontSize(6.5); doc.setTextColor(60,60,60);
-      doc.text('Fecha', xL+1.5, y+3.8);
-      doc.setFont('helvetica','normal'); doc.setTextColor(150,150,150);
-      doc.text('_____ / _____ / 2026', xL+23.5, y+3.8);
-      y += 5.5;
+      doc.rect(xL, y, labelW, rh, 'F');
+      doc.rect(xL, y, halfW, rh, 'S');
+      doc.line(xL+labelW, y, xL+labelW, y+rh);
+      doc.setFont('helvetica','bold'); doc.setFontSize(fsL); doc.setTextColor(60,60,60);
+      doc.text('Fecha', xL+2, y+5);
+      doc.setFont('helvetica','normal'); doc.setTextColor(150,150,150); doc.setFontSize(fs);
+      doc.text('_____ / _____ / 2026', xL+labelW+2, y+5);
+      y += rh;
 
       // Cobrado por — ONLY on instituto copy
       if(isInstituto) {
         doc.setFillColor(240,242,246);
-        doc.rect(xL, y, 22, 5.5, 'F');
-        doc.rect(xL, y, halfW, 5.5, 'S');
-        doc.line(xL+22, y, xL+22, y+5.5);
-        doc.setFont('helvetica','bold'); doc.setFontSize(6.5); doc.setTextColor(60,60,60);
-        doc.text('Cobrado por', xL+1.5, y+3.8);
+        doc.rect(xL, y, labelW, rh, 'F');
+        doc.rect(xL, y, halfW, rh, 'S');
+        doc.line(xL+labelW, y, xL+labelW, y+rh);
+        doc.setFont('helvetica','bold'); doc.setFontSize(fsL); doc.setTextColor(60,60,60);
+        doc.text('Cobrado por', xL+2, y+5);
         doc.setFont('helvetica','normal'); doc.setTextColor(150,150,150);
-        doc.text('_______________________________', xL+23.5, y+3.8);
+        doc.text('_______________________________', xL+labelW+2, y+5);
       }
     }
 
-    // Draw LEFT half (alumno) and RIGHT half (instituto)
-    drawHalf(0, true);         // left = instituto copy
-    drawHalf(midX, false);     // right = alumno copy
+    // Draw LEFT = instituto, RIGHT = alumno
+    drawHalf(0, true);
+    drawHalf(midX, false);
   });
 
   doc.save(`Talonario_${mes}_2026${curso?'_'+curso.substring(0,15):''}.pdf`);
