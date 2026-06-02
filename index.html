@@ -1021,6 +1021,17 @@ td{padding:9px 12px;vertical-align:middle}
   </div>
 </div>
 
+<!-- MODAL ESTADO DE CUENTA -->
+<div class="modal-overlay" id="modalEstadoCuenta">
+  <div class="modal" style="max-width:560px">
+    <div class="modal-title" id="ecTitulo">📊 Estado de cuenta</div>
+    <div id="ecContent"></div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="$('modalEstadoCuenta').classList.remove('active')">Cerrar</button>
+    </div>
+  </div>
+</div>
+
 <!-- ══════════ MODAL VER ALUMNO ══════════ -->
 <div class="modal-overlay" id="modalVerAlumno">
   <div class="modal">
@@ -1516,10 +1527,142 @@ function renderAlumnos() {
       </div>
       <div style="display:flex;gap:4px">
         <button class="btn btn-ghost btn-sm" onclick="verAlumno(${a.id})" title="Ver detalle">👁</button>
+        <button class="btn btn-ghost btn-sm" onclick="estadoCuenta(${a.id})" title="Estado de cuenta">📊</button>
         <button class="btn btn-ghost btn-sm" onclick="abrirModalAlumno(${a.id})" title="Editar">✏️</button>
       </div>
     </div>`;
   }).join('');
+}
+
+function renderEstadoCuenta(a, pagosA){
+  const mesesAnio = ['Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
+  // Matrícula
+  const pagoMatricula = pagosA.find(p=>p.concepto==='Matrícula 2026');
+  // Cuotas por mes
+  const cuotasPorMes = {};
+  pagosA.filter(p=>p.concepto==='Cuota mensual').forEach(p=>{ cuotasPorMes[p.mes]=p; });
+
+  const matIcon = pagoMatricula
+    ? `<span style="display:inline-flex;align-items:center;gap:4px;background:#d0e8c4;color:#375623;padding:4px 10px;border-radius:20px;font-size:11px;font-weight:700">✓ Matrícula ${fmt(pagoMatricula.total)}</span>`
+    : `<span style="display:inline-flex;align-items:center;gap:4px;background:#fde8e5;color:#7a1a10;padding:4px 10px;border-radius:20px;font-size:11px;font-weight:700">✗ Matrícula pendiente</span>`;
+
+  const grid = mesesAnio.map(mes=>{
+    const pago = cuotasPorMes[mes];
+    if(pago){
+      const formaColor = pago.forma==='efectivo' ? '#d0e8c4' : '#dbbff0';
+      const txtColor   = pago.forma==='efectivo' ? '#375623' : '#4B1A7A';
+      const formaIcon  = pago.forma==='efectivo' ? '💵' : '🏦';
+      return `<div style="background:${formaColor};color:${txtColor};border-radius:8px;padding:8px 6px;text-align:center">
+        <div style="font-size:10px;font-weight:700;text-transform:uppercase">${mes.substring(0,3)}</div>
+        <div style="font-size:13px;margin:2px 0">✓</div>
+        <div style="font-size:9px;font-weight:600">${formaIcon} ${fmt(pago.total)}</div>
+      </div>`;
+    } else {
+      return `<div style="background:#f5f5f5;color:#aaa;border-radius:8px;padding:8px 6px;text-align:center;border:1px dashed #ddd">
+        <div style="font-size:10px;font-weight:700;text-transform:uppercase">${mes.substring(0,3)}</div>
+        <div style="font-size:13px;margin:2px 0">—</div>
+        <div style="font-size:9px">pendiente</div>
+      </div>`;
+    }
+  }).join('');
+
+  const pagados = Object.keys(cuotasPorMes).length;
+  return `
+    <div style="background:#fff;border:1px solid var(--border);padding:14px;border-radius:8px">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
+        <div style="font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.5px">📅 Estado de cuenta 2026</div>
+        ${matIcon}
+      </div>
+      <div style="display:grid;grid-template-columns:repeat(5,1fr);gap:6px">${grid}</div>
+      <div style="margin-top:10px;font-size:12px;color:var(--muted);text-align:center">
+        <strong style="color:var(--green)">${pagados}</strong> de 10 cuotas pagadas
+      </div>
+      <div style="display:flex;gap:8px;margin-top:12px;flex-wrap:wrap;justify-content:center">
+        <button class="btn btn-primary btn-sm" onclick="cobrarDesdeAlumno(${a.id})">💳 Registrar pago</button>
+      </div>
+    </div>`;
+}
+
+function cobrarDesdeAlumno(id){
+  cerrarModalVerAlumno();
+  showPage('cobrar');
+  // Pre-select alumno
+  setTimeout(()=>{ if(typeof selectAlumno==='function') selectAlumno(id); }, 200);
+}
+
+
+function estadoCuenta(id){
+  const a = ALUMNOS_PRELOAD.find(x=>x.id===id);
+  if(!a) return;
+  const pagosA = pagos.filter(p=>p.alumnoId===id);
+  $('ecTitulo').textContent = `📊 Estado de cuenta — ${a.apellido}, ${a.nombre}`;
+
+  const mesesAnio = ['Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
+  const pagoMatricula = pagosA.find(p=>p.concepto==='Matrícula 2026');
+  const cuotasPorMes = {};
+  pagosA.filter(p=>p.concepto==='Cuota mensual').forEach(p=>{ cuotasPorMes[p.mes]=p; });
+
+  // Matrícula card
+  const matCard = pagoMatricula
+    ? `<div onclick="$('modalEstadoCuenta').classList.remove('active');verRecibo(${pagoMatricula.id})" style="cursor:pointer;background:#d0e8c4;color:#375623;border-radius:8px;padding:12px 16px;display:flex;justify-content:space-between;align-items:center">
+        <div><div style="font-size:11px;font-weight:700;text-transform:uppercase">Matrícula 2026</div><div style="font-size:10px">${pagoMatricula.forma==='efectivo'?'💵 Efectivo':'🏦 Transferencia'} · ${pagoMatricula.fecha}</div></div>
+        <div style="font-weight:700;font-size:16px">${fmt(pagoMatricula.total)} ✓</div></div>`
+    : `<div onclick="cobrarMesEspecifico(${a.id},'matricula','')" style="cursor:pointer;background:#fde8e5;color:#7a1a10;border-radius:8px;padding:12px 16px;display:flex;justify-content:space-between;align-items:center;border:1px dashed #f5c6c0">
+        <div><div style="font-size:11px;font-weight:700;text-transform:uppercase">Matrícula 2026</div><div style="font-size:10px">Tocá para registrar el pago</div></div>
+        <div style="font-weight:700;font-size:14px">Pendiente ✗</div></div>`;
+
+  // Months grid (clickable)
+  const grid = mesesAnio.map(mes=>{
+    const pago = cuotasPorMes[mes];
+    if(pago){
+      const bg = pago.forma==='efectivo' ? '#d0e8c4' : '#dbbff0';
+      const tx = pago.forma==='efectivo' ? '#375623' : '#4B1A7A';
+      const ic = pago.forma==='efectivo' ? '💵' : '🏦';
+      return `<div onclick="$('modalEstadoCuenta').classList.remove('active');verRecibo(${pago.id})" title="Ver recibo de ${mes}"
+        style="cursor:pointer;background:${bg};color:${tx};border-radius:8px;padding:10px 6px;text-align:center;transition:transform .1s"
+        onmouseover="this.style.transform='scale(1.05)'" onmouseout="this.style.transform='scale(1)'">
+        <div style="font-size:10px;font-weight:700;text-transform:uppercase">${mes.substring(0,3)}</div>
+        <div style="font-size:14px;margin:3px 0">✓</div>
+        <div style="font-size:9px;font-weight:600">${ic} ${fmt(pago.total)}</div></div>`;
+    } else {
+      return `<div onclick="cobrarMesEspecifico(${a.id},'cuota','${mes}')" title="Registrar pago de ${mes}"
+        style="cursor:pointer;background:#f5f5f5;color:#999;border-radius:8px;padding:10px 6px;text-align:center;border:1px dashed #ddd;transition:transform .1s"
+        onmouseover="this.style.transform='scale(1.05)';this.style.borderColor='#2e75b6'" onmouseout="this.style.transform='scale(1)';this.style.borderColor='#ddd'">
+        <div style="font-size:10px;font-weight:700;text-transform:uppercase">${mes.substring(0,3)}</div>
+        <div style="font-size:14px;margin:3px 0">+</div>
+        <div style="font-size:9px">cobrar</div></div>`;
+    }
+  }).join('');
+
+  const pagados = Object.keys(cuotasPorMes).length;
+  const totalA = pagosA.reduce((s,p)=>s+p.total,0);
+
+  $('ecContent').innerHTML = `
+    <div style="margin-bottom:14px">${matCard}</div>
+    <div style="font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px">Cuotas mensuales — tocá un mes para ver o cobrar</div>
+    <div style="display:grid;grid-template-columns:repeat(5,1fr);gap:7px">${grid}</div>
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-top:16px;background:var(--navy);color:#fff;padding:12px 16px;border-radius:8px">
+      <div><span style="font-size:22px;font-weight:700">${pagados}</span><span style="font-size:12px;opacity:.8">/10 cuotas</span></div>
+      <div style="text-align:right"><div style="font-size:11px;opacity:.8">Total abonado</div><div style="font-size:18px;font-weight:700">${fmt(totalA)}</div></div>
+    </div>`;
+  $('modalEstadoCuenta').classList.add('active');
+}
+
+function cobrarMesEspecifico(id, concepto, mes){
+  $('modalEstadoCuenta').classList.remove('active');
+  showPage('cobrar');
+  setTimeout(()=>{
+    if(typeof selectAlumno==='function') selectAlumno(id);
+    setTimeout(()=>{
+      const conceptoSel = $('concepto');
+      if(conceptoSel) conceptoSel.value = concepto;
+      if(concepto==='cuota' && mes){ const mesSel=$('mesPago'); if(mesSel) mesSel.value=mes; }
+      if(typeof calcularPrecio==='function') calcularPrecio();
+      // Scroll to form
+      const card = document.querySelector('#page-cobrar .card');
+      if(card) card.scrollIntoView({behavior:'smooth',block:'start'});
+    }, 250);
+  }, 200);
 }
 
 function verAlumno(id) {
@@ -1542,13 +1685,14 @@ function verAlumno(id) {
         </div>`).join('')}
     </div>
     ${a.obs?`<div class="alert alert-amber"><span class="alert-icon">📝</span><div>${a.obs}</div></div>`:''}
-    <div style="background:var(--sand);padding:12px 14px;border-radius:8px">
-      <div style="font-size:11px;font-weight:600;color:var(--muted);margin-bottom:6px">PAGOS REGISTRADOS</div>
+    <div style="background:var(--sand);padding:12px 14px;border-radius:8px;margin-bottom:14px">
+      <div style="font-size:11px;font-weight:600;color:var(--muted);margin-bottom:6px">RESUMEN DE PAGOS</div>
       <div style="display:flex;gap:20px">
         <div><span style="font-size:20px;font-weight:700;color:var(--navy)">${pagosA.length}</span><div style="font-size:11px;color:var(--muted)">pagos</div></div>
         <div><span style="font-size:20px;font-weight:700;color:var(--green)">${fmt(totalA)}</span><div style="font-size:11px;color:var(--muted)">total abonado</div></div>
       </div>
     </div>
+    ${renderEstadoCuenta(a, pagosA)}
   `;
   $('modalVerAlumno').dataset.currentId = id;
   $('modalVerAlumno').classList.add('active');
