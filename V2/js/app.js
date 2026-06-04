@@ -11,6 +11,11 @@ import * as Pagos from './modules/pagos.js';
 import { renderHistorial, exportCSV } from './modules/historial.js';
 import * as Alumnos from './modules/alumnos.js';
 import { renderMorosos } from './modules/morosos.js';
+import { renderDashboard } from './modules/dashboard.js';
+import * as Tarifas from './modules/tarifas.js';
+import * as Rent from './modules/rentabilidad.js';
+import * as Haberes from './modules/haberes.js';
+import * as Talonario from './modules/talonario.js';
 
 window.App = {
   buscarAlumno: Pagos.buscarAlumno,
@@ -25,6 +30,22 @@ window.App = {
   guardarAlumno: Alumnos.guardarAlumno,
   toggleBonifVal: Alumnos.toggleBonifVal,
   renderMorosos,
+  renderDashboard,
+  renderTarifas: Tarifas.renderTarifas,
+  setTarifaVista: Tarifas.setTarifaVista,
+  guardarTarifasNuevas: Tarifas.guardarTarifasNuevas,
+  aplicarAumento: Tarifas.aplicarAumento,
+  renderRentabilidad: Rent.renderRentabilidad,
+  updateGasto: Rent.updateGasto,
+  exportRentCSV: Rent.exportRentCSV,
+  renderHaberes: Haberes.renderHaberes,
+  haberesSetHoras: Haberes.haberesSetHoras,
+  haberesAgregarExtra: Haberes.haberesAgregarExtra,
+  haberesQuitarExtra: Haberes.haberesQuitarExtra,
+  haberesComprobante: Haberes.haberesComprobante,
+  exportHaberesCSV: Haberes.exportHaberesCSV,
+  renderTalonario: Talonario.renderTalonario,
+  imprimirTalonario: Talonario.imprimirTalonario,
 };
 
 function initHeader() {
@@ -57,8 +78,8 @@ function startApp() {
   listenPagos(() => {
     const active = document.querySelector('.page.active');
     if (!active) return;
-    if (active.id === 'page-historial') renderHistorial();
-    if (active.id === 'page-morosos') renderMorosos();
+    const name = active.id.replace('page-', '');
+    if (['historial','morosos','dashboard','rentabilidad'].includes(name)) showPage(name);
   });
 }
 

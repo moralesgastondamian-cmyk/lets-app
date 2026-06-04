@@ -7,6 +7,7 @@
 <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <link rel="stylesheet" href="styles-v2.css">
+<style>@media(max-width:760px){.rent-cols{grid-template-columns:1fr!important}}</style>
 </head>
 <body>
 
@@ -44,9 +45,11 @@
 
 <!-- DASHBOARD -->
 <div class="page" id="page-dashboard">
+  <div id="kpiGrid" class="kpi-grid"></div>
+  <div class="card"><div id="formasBar"></div></div>
   <div class="card">
-    <div class="card-title">📊 Dashboard</div>
-    <p style="color:var(--muted)">Próxima etapa. Por ahora podés usar <strong>Registrar Pago</strong> e <strong>Historial</strong>, ya migrados con el diseño nuevo.</p>
+    <div class="card-title">Últimos pagos</div>
+    <div id="lastPayments"></div>
   </div>
 </div>
 
@@ -190,10 +193,82 @@
     <div id="morososList"></div>
   </div>
 </div>
-<div class="page" id="page-rentabilidad"><div class="card"><div class="card-title">📈 Rentabilidad</div><p style="color:var(--muted)">Próxima etapa.</p></div></div>
-<div class="page" id="page-tarifas"><div class="card"><div class="card-title">💰 Tarifas</div><p style="color:var(--muted)">Próxima etapa.</p></div></div>
-<div class="page" id="page-haberes"><div class="card"><div class="card-title">👩‍🏫 Haberes</div><p style="color:var(--muted)">Próxima etapa.</p></div></div>
-<div class="page" id="page-talonario"><div class="card"><div class="card-title">🖨 Talonario</div><p style="color:var(--muted)">Próxima etapa.</p></div></div>
+<div class="page" id="page-rentabilidad">
+  <div class="card">
+    <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;margin-bottom:14px">
+      <div class="card-title" style="margin:0">📈 Estado de Resultados</div>
+      <select id="rentMes" onchange="App.renderRentabilidad()" style="max-width:160px"></select>
+    </div>
+    <div id="rentKpis" class="kpi-grid"></div>
+  </div>
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px" class="rent-cols">
+    <div class="card"><div class="card-title">💰 Ingresos</div><div id="rentIngresos"></div></div>
+    <div class="card"><div class="card-title">💸 Egresos</div><div id="rentEgresos"></div></div>
+  </div>
+  <div class="card"><div id="rentResultado"></div></div>
+  <div class="btn-row" style="margin-top:0">
+    <button class="btn btn-ghost" onclick="App.exportRentCSV()" style="padding:10px 16px;font-size:13px">📥 Exportar CSV</button>
+  </div>
+</div>
+<div class="page" id="page-tarifas">
+  <div class="card">
+    <div class="card-title">💰 Tarifas 2026</div>
+    <div class="toggle-group">
+      <button class="toggle-btn active" data-modo="actual" onclick="App.setTarifaVista('actual')">Marzo–Abril</button>
+      <button class="toggle-btn" data-modo="nueva" onclick="App.setTarifaVista('nueva')">Mayo en adelante</button>
+    </div>
+    <div class="month-badge" id="tarifaMesLabel">📅 Marzo / Abril 2026</div>
+    <div class="tarifa-head"><div>Curso</div><div>Transferencia</div><div>Efectivo</div></div>
+    <div id="tarifaGrid" style="border:1px solid var(--border);border-top:none;border-radius:0 0 8px 8px;overflow:hidden"></div>
+  </div>
+  <div class="card" id="editTarifasWrap" style="display:none">
+    <div class="card-title">✏️ Editar tarifas (Mayo en adelante)</div>
+    <div style="background:var(--cream);border-radius:10px;padding:14px;margin-bottom:16px">
+      <label>Aumento porcentual masivo</label>
+      <div style="display:flex;gap:10px;align-items:center">
+        <input type="number" id="aumentoPct" placeholder="Ej: 15" style="max-width:120px">
+        <span style="color:var(--muted)">%</span>
+        <button class="btn btn-gold" onclick="App.aplicarAumento()" style="padding:10px 16px;font-size:13px">Aplicar a todas</button>
+      </div>
+    </div>
+    <div id="editTarifas" class="form-grid"></div>
+    <div class="btn-row">
+      <button class="btn btn-primary btn-block" onclick="App.guardarTarifasNuevas()">💾 Guardar tarifas</button>
+    </div>
+  </div>
+</div>
+<div class="page" id="page-haberes">
+  <div class="card">
+    <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;margin-bottom:14px">
+      <div class="card-title" style="margin:0">👩‍🏫 Haberes Docentes</div>
+      <select id="habMes" onchange="App.renderHaberes()" style="max-width:160px"></select>
+    </div>
+    <div class="hab-total-general">
+      <span class="lbl">Total a pagar (todos los docentes)</span>
+      <span class="val" id="habTotalGeneral">$0</span>
+    </div>
+    <div id="habList"></div>
+    <div class="btn-row">
+      <button class="btn btn-ghost" onclick="App.exportHaberesCSV()" style="padding:10px 16px;font-size:13px">📥 Exportar CSV</button>
+    </div>
+  </div>
+</div>
+<div class="page" id="page-talonario">
+  <div class="card">
+    <div class="card-title">🖨 Talonario de comprobantes</div>
+    <div class="tal-info">Genera comprobantes de pago en PDF — 4 por hoja A4, dobles (una mitad para el alumno, otra para el instituto), con línea de troquelado. El descuento familiar del 5% ya viene aplicado en los precios.</div>
+    <div class="form-grid">
+      <div class="form-row"><label>Mes</label><select id="talMes" onchange="App.renderTalonario()"></select></div>
+      <div class="form-row"><label>Curso (opcional)</label><select id="talCurso" onchange="App.renderTalonario()"><option value="">Todos los cursos</option></select></div>
+    </div>
+    <div id="talCount" style="font-size:12px;color:var(--muted);margin-bottom:10px"></div>
+    <div class="section-label">Vista previa (primeros 4)</div>
+    <div id="talPreview" style="border:1px solid var(--border);border-radius:var(--rs);overflow:hidden;margin-bottom:16px"></div>
+    <div class="btn-row">
+      <button class="btn btn-primary btn-block" onclick="App.imprimirTalonario()">🖨 Generar talonario PDF</button>
+    </div>
+  </div>
+</div>
 
 <!-- MODAL ESTADO DE CUENTA -->
 <div class="modal-overlay" id="modalEstadoCuenta">

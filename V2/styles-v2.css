@@ -173,3 +173,68 @@ input:focus,select:focus{border-color:var(--sky)}
 /* ── COUNT BADGE ── */
 .count-badge{display:inline-block;background:var(--cream);color:var(--muted);font-size:12px;font-weight:600;padding:4px 12px;border-radius:20px}
 .pill-red{background:#fde8e5;color:#7a1a10;padding:4px 12px;border-radius:20px;font-size:12px;font-weight:700}
+
+/* ── DASHBOARD ── */
+.kpi-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;margin-bottom:16px}
+.kpi{background:#fff;border:1px solid var(--border);border-radius:var(--r);padding:16px;text-align:center;position:relative;overflow:hidden;box-shadow:var(--shadow)}
+.kpi::before{content:'';position:absolute;top:0;left:0;right:0;height:4px}
+.kpi.blue::before{background:var(--sky)}.kpi.green::before{background:var(--green)}
+.kpi.red::before{background:var(--red)}.kpi.amber::before{background:var(--gold)}.kpi.violet::before{background:var(--violet)}
+.kpi-val{font-family:'DM Serif Display',serif;font-size:26px;color:var(--navy);line-height:1}
+.kpi-val.small{font-size:18px}
+.kpi-label{font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-top:6px}
+.formas-bar{display:flex;height:32px;border-radius:8px;overflow:hidden;margin:8px 0}
+.formas-seg{display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700;font-size:12px}
+.formas-seg.ef{background:var(--green)}.formas-seg.tr{background:var(--violet)}
+.formas-leg{display:flex;justify-content:space-between;font-size:12px;color:var(--muted)}
+.dash-pago{display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid var(--cream)}
+.dash-pago-n{font-weight:600;font-size:14px}
+.dash-pago-d{font-size:11px;color:var(--muted)}
+.dash-pago-v{font-weight:700;color:var(--navy)}
+
+/* ── TARIFAS ── */
+.toggle-group{display:flex;background:var(--cream);border-radius:10px;padding:3px;gap:2px;width:fit-content;margin-bottom:14px}
+.toggle-btn{padding:9px 18px;border-radius:8px;border:none;font-family:inherit;font-weight:600;font-size:13px;cursor:pointer;background:transparent;color:var(--muted)}
+.toggle-btn.active{background:#fff;color:var(--navy);box-shadow:var(--shadow)}
+.month-badge{display:inline-flex;align-items:center;gap:6px;background:var(--navy);color:#fff;padding:5px 14px;border-radius:20px;font-size:13px;font-weight:600;margin-bottom:14px}
+.tarifa-row{display:grid;grid-template-columns:2fr 1fr 1fr;gap:1px;align-items:center}
+.tarifa-row.alt{background:var(--cream)}
+.tarifa-curso{padding:9px 12px;font-size:12px;font-weight:600;color:var(--navy)}
+.tarifa-val{padding:9px 12px;font-size:13px;text-align:right}
+.tarifa-val.tr{color:var(--violet-tx)}.tarifa-val.ef{color:var(--green-tx)}
+.tarifa-head{display:grid;grid-template-columns:2fr 1fr 1fr;background:var(--navy);color:#fff;border-radius:8px 8px 0 0;font-size:11px;font-weight:700;text-transform:uppercase}
+.tarifa-head>div{padding:10px 12px}
+.tarifa-head>div:not(:first-child){text-align:right}
+.edit-tarifa{margin-bottom:10px}
+
+/* ── RENTABILIDAD ── */
+.rent-row{display:flex;justify-content:space-between;align-items:center;padding:9px 0;border-bottom:1px solid var(--cream);font-size:14px}
+.rent-row.total{border-top:2px solid var(--border);border-bottom:none;font-weight:700;color:var(--navy);font-size:15px;padding-top:11px}
+.rent-input{width:120px;text-align:right;padding:7px 10px;font-size:13px}
+.rent-tag{background:var(--cream);color:var(--muted);font-size:9px;padding:1px 6px;border-radius:8px;font-weight:700;text-transform:uppercase}
+.rent-final{border-radius:var(--r);padding:20px;text-align:center;color:#fff}
+.rent-final.pos{background:var(--green)}.rent-final.neg{background:var(--red)}
+.rent-final-label{font-size:13px;opacity:.9;text-transform:uppercase;letter-spacing:.5px}
+.rent-final-val{font-family:'DM Serif Display',serif;font-size:34px;margin:6px 0}
+.rent-final-margen{font-size:13px;opacity:.9}
+
+/* ── HABERES ── */
+.hab-card{background:#fff;border:1px solid var(--border);border-radius:var(--r);padding:16px;margin-bottom:12px;box-shadow:var(--shadow)}
+.hab-head{display:flex;justify-content:space-between;align-items:center}
+.hab-nombre{font-weight:700;font-size:16px;color:var(--navy)}
+.hab-total{font-family:'DM Serif Display',serif;font-size:20px;color:var(--green)}
+.hab-cursos{font-size:11px;color:var(--muted);margin:4px 0 12px}
+.hab-row{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:10px}
+.hab-input{max-width:90px;text-align:center}
+.hab-extras{background:var(--cream);border-radius:8px;padding:8px 12px;margin-bottom:10px}
+.hab-extra-row{display:flex;justify-content:space-between;align-items:center;font-size:13px;padding:3px 0}
+.hab-add-extra{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px}
+.hab-add-extra input{flex:1;min-width:120px}
+.hab-actions{display:flex;gap:8px;border-top:1px solid var(--cream);padding-top:10px}
+.hab-total-general{background:var(--navy);color:#fff;border-radius:var(--r);padding:16px 20px;display:flex;justify-content:space-between;align-items:center;margin-bottom:16px}
+.hab-total-general .lbl{font-size:13px;opacity:.85;text-transform:uppercase;letter-spacing:.5px}
+.hab-total-general .val{font-family:'DM Serif Display',serif;font-size:28px}
+
+/* ── TALONARIO ── */
+.tal-prev-row{display:flex;justify-content:space-between;align-items:center;padding:11px 14px;border-bottom:1px solid var(--cream)}
+.tal-info{background:var(--cream);border-radius:10px;padding:14px 16px;font-size:13px;color:var(--muted);margin-bottom:16px}
