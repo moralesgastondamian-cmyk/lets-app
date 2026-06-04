@@ -271,16 +271,16 @@
 </div>
 
 <!-- MODAL ESTADO DE CUENTA -->
-<div class="modal-overlay" id="modalEstadoCuenta">
+<div class="modal-overlay" id="modalEstadoCuenta" style="display:none">
   <div class="modal">
     <div class="modal-title" id="ecTitulo">📊 Estado de cuenta</div>
     <div id="ecContent"></div>
-    <div class="modal-footer"><button class="btn btn-ghost" onclick="document.getElementById('modalEstadoCuenta').classList.remove('active')">Cerrar</button></div>
+    <div class="modal-footer"><button class="btn btn-ghost" onclick="var m=document.getElementById('modalEstadoCuenta');m.classList.remove('active');m.style.display='none'">Cerrar</button></div>
   </div>
 </div>
 
 <!-- MODAL ALUMNO -->
-<div class="modal-overlay" id="modalAlumno">
+<div class="modal-overlay" id="modalAlumno" style="display:none">
   <div class="modal">
     <div class="modal-title" id="maTitulo">Nuevo alumno</div>
     <div class="form-grid">
@@ -314,7 +314,7 @@
     </div>
     <div class="form-row"><label>Observaciones</label><input type="text" id="ma_obs"></div>
     <div class="modal-footer">
-      <button class="btn btn-ghost" onclick="document.getElementById('modalAlumno').classList.remove('active')">Cancelar</button>
+      <button class="btn btn-ghost" onclick="var m=document.getElementById('modalAlumno');m.classList.remove('active');m.style.display='none'">Cancelar</button>
       <button class="btn btn-primary" onclick="App.guardarAlumno()">💾 Guardar</button>
     </div>
   </div>
