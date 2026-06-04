@@ -193,5 +193,22 @@ export function limpiarForm() {
   if ($('overrideBonif')) $('overrideBonif').checked = false;
 }
 
+// Pre-seleccionar alumno + concepto + mes (usado desde Morosos y Estado de cuenta)
+export function selectAlumnoById(id, concepto, mes) {
+  selectAlumno(id);
+  if (concepto) {
+    $('concepto').value = concepto;
+    if (concepto === 'cuota' && mes) {
+      // asegurar que el select de mes esté poblado
+      const mesSel = $('mesPago');
+      if (mesSel && mesSel.options.length === 0) renderPagos();
+      if (mesSel) mesSel.value = mes;
+    }
+  }
+  calcularPrecio();
+  const card = document.querySelector('#page-cobrar .card');
+  if (card) card.scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
 // Registrar la página en el router
 registerPage('cobrar', renderPagos);

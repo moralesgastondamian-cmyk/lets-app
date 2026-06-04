@@ -162,12 +162,88 @@
 </div>
 
 <!-- PÁGINAS PENDIENTES -->
-<div class="page" id="page-alumnos"><div class="card"><div class="card-title">👥 Alumnos</div><p style="color:var(--muted)">Próxima etapa.</p></div></div>
-<div class="page" id="page-morosos"><div class="card"><div class="card-title">🔴 Morosos</div><p style="color:var(--muted)">Próxima etapa.</p></div></div>
+<div class="page" id="page-alumnos">
+  <div class="card">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;flex-wrap:wrap;gap:10px">
+      <div class="card-title" style="margin:0">👥 Alumnos</div>
+      <button class="btn btn-primary" style="padding:10px 18px;font-size:14px" onclick="App.abrirModalAlumno()">➕ Agregar</button>
+    </div>
+    <div class="search-bar">
+      <input type="text" id="filtroNombre" placeholder="Buscar nombre o apellido..." oninput="App.renderAlumnos()">
+      <select id="filtroCurso" onchange="App.renderAlumnos()" style="max-width:170px"><option value="">Todos los cursos</option></select>
+      <select id="filtroEstado" onchange="App.renderAlumnos()" style="max-width:130px">
+        <option value="">Todos</option><option value="Activo">Activos</option><option value="Inactivo">Inactivos</option>
+      </select>
+    </div>
+    <div id="alCount" style="font-size:12px;color:var(--muted);margin-bottom:10px"></div>
+    <div id="alumnosList2"></div>
+  </div>
+</div>
+<div class="page" id="page-morosos">
+  <div class="card">
+    <div class="card-title">🔴 Morosos</div>
+    <div style="display:flex;gap:12px;align-items:center;margin-bottom:16px;flex-wrap:wrap">
+      <label style="margin:0">Mes:</label>
+      <select id="mesMoroso" onchange="App.renderMorosos()" style="max-width:160px"></select>
+      <span id="countMorosos" class="pill-red"></span>
+    </div>
+    <div id="morososList"></div>
+  </div>
+</div>
 <div class="page" id="page-rentabilidad"><div class="card"><div class="card-title">📈 Rentabilidad</div><p style="color:var(--muted)">Próxima etapa.</p></div></div>
 <div class="page" id="page-tarifas"><div class="card"><div class="card-title">💰 Tarifas</div><p style="color:var(--muted)">Próxima etapa.</p></div></div>
 <div class="page" id="page-haberes"><div class="card"><div class="card-title">👩‍🏫 Haberes</div><p style="color:var(--muted)">Próxima etapa.</p></div></div>
 <div class="page" id="page-talonario"><div class="card"><div class="card-title">🖨 Talonario</div><p style="color:var(--muted)">Próxima etapa.</p></div></div>
+
+<!-- MODAL ESTADO DE CUENTA -->
+<div class="modal-overlay" id="modalEstadoCuenta">
+  <div class="modal">
+    <div class="modal-title" id="ecTitulo">📊 Estado de cuenta</div>
+    <div id="ecContent"></div>
+    <div class="modal-footer"><button class="btn btn-ghost" onclick="document.getElementById('modalEstadoCuenta').classList.remove('active')">Cerrar</button></div>
+  </div>
+</div>
+
+<!-- MODAL ALUMNO -->
+<div class="modal-overlay" id="modalAlumno">
+  <div class="modal">
+    <div class="modal-title" id="maTitulo">Nuevo alumno</div>
+    <div class="form-grid">
+      <div class="form-row"><label>Apellido *</label><input type="text" id="ma_apellido"></div>
+      <div class="form-row"><label>2do Apellido</label><input type="text" id="ma_apellido2"></div>
+      <div class="form-row"><label>Nombre *</label><input type="text" id="ma_nombre"></div>
+      <div class="form-row"><label>Curso *</label><select id="ma_curso"></select></div>
+      <div class="form-row"><label>Responsable *</label><input type="text" id="ma_responsable"></div>
+      <div class="form-row"><label>Celular</label><input type="text" id="ma_celular"></div>
+      <div class="form-row"><label>Horario</label><input type="text" id="ma_horario"></div>
+      <div class="form-row"><label>Fecha nacimiento</label><input type="date" id="ma_nacimiento"></div>
+      <div class="form-row"><label>Estado</label><select id="ma_estado"><option value="Activo">Activo</option><option value="Inactivo">Inactivo</option></select></div>
+      <div class="form-row"><label>Descuento familiar</label><select id="ma_familiar"><option value="0">No</option><option value="1">Sí</option></select></div>
+    </div>
+    <div class="form-row">
+      <label>Bonificación permanente</label>
+      <div class="form-grid">
+        <select id="ma_bonif_tipo" onchange="App.toggleBonifVal()">
+          <option value="ninguna">Sin bonificación</option>
+          <option value="porc">Porcentaje (%)</option>
+          <option value="monto">Monto fijo ($)</option>
+          <option value="beca">Beca 100%</option>
+        </select>
+        <input type="number" id="ma_bonif_val" placeholder="Valor" style="display:none">
+        <select id="ma_bonif_aplica" style="display:none">
+          <option value="ambos">Cuota y matrícula</option>
+          <option value="cuota">Solo cuotas</option>
+          <option value="matricula">Solo matrícula</option>
+        </select>
+      </div>
+    </div>
+    <div class="form-row"><label>Observaciones</label><input type="text" id="ma_obs"></div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="document.getElementById('modalAlumno').classList.remove('active')">Cancelar</button>
+      <button class="btn btn-primary" onclick="App.guardarAlumno()">💾 Guardar</button>
+    </div>
+  </div>
+</div>
 
 <div class="v2-banner">VERSIÓN MODULAR v2 — EN PRUEBAS · App oficial en /lets-app/</div>
 

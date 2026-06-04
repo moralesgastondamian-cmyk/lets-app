@@ -9,14 +9,22 @@ import { loadLocal, loadFirebase, listenPagos } from './core/data.js';
 
 import * as Pagos from './modules/pagos.js';
 import { renderHistorial, exportCSV } from './modules/historial.js';
+import * as Alumnos from './modules/alumnos.js';
+import { renderMorosos } from './modules/morosos.js';
 
 window.App = {
   buscarAlumno: Pagos.buscarAlumno,
   calcularPrecio: Pagos.calcularPrecio,
   registrarPago: Pagos.registrarPago,
   limpiarForm: Pagos.limpiarForm,
+  selectAlumnoById: Pagos.selectAlumnoById,
   renderHistorial,
   exportCSV,
+  renderAlumnos: Alumnos.renderAlumnos,
+  abrirModalAlumno: Alumnos.abrirModalAlumno,
+  guardarAlumno: Alumnos.guardarAlumno,
+  toggleBonifVal: Alumnos.toggleBonifVal,
+  renderMorosos,
 };
 
 function initHeader() {
@@ -48,7 +56,9 @@ function startApp() {
 
   listenPagos(() => {
     const active = document.querySelector('.page.active');
-    if (active && active.id === 'page-historial') renderHistorial();
+    if (!active) return;
+    if (active.id === 'page-historial') renderHistorial();
+    if (active.id === 'page-morosos') renderMorosos();
   });
 }
 

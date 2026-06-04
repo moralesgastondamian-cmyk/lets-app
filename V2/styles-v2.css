@@ -126,3 +126,50 @@ input:focus,select:focus{border-color:var(--sky)}
 /* ── BANNER V2 ── */
 .v2-banner{position:fixed;bottom:0;left:0;right:0;background:var(--gold);color:var(--navy);text-align:center;font-size:10px;font-weight:700;padding:3px;z-index:10001;letter-spacing:.5px}
 @media(max-width:760px){.v2-banner{bottom:54px}}
+
+/* ── ALUMNOS ── */
+.al-card{display:flex;justify-content:space-between;align-items:center;gap:12px;background:#fff;border:1px solid var(--border);border-radius:var(--rs);padding:14px 16px;margin-bottom:10px;box-shadow:var(--shadow)}
+.al-card.inactivo{opacity:.55}
+.al-card-nombre{font-weight:700;font-size:15px}
+.al-card-curso{font-size:12px;color:var(--sky);margin-top:2px}
+.al-card-meta{font-size:11px;color:var(--muted);margin-top:2px}
+.al-card-acciones{display:flex;gap:6px;flex-shrink:0}
+
+/* ── ESTADO DE CUENTA ── */
+.ec-mat{display:flex;justify-content:space-between;align-items:center;border-radius:var(--rs);padding:13px 16px;cursor:pointer}
+.ec-mat.ok{background:var(--green-bg);color:var(--green-tx)}
+.ec-mat.pend{background:#fde8e5;color:#7a1a10;border:1px dashed #f0c0bb}
+.ec-mat-t{font-size:12px;font-weight:700;text-transform:uppercase}
+.ec-mat-s{font-size:11px;opacity:.85}
+.ec-mat-v{font-weight:700;font-size:15px}
+.ec-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:7px}
+.ec-mes{border-radius:var(--rs);padding:10px 4px;text-align:center;cursor:pointer;transition:transform .1s}
+.ec-mes:active{transform:scale(.95)}
+.ec-mes.ef{background:var(--green-bg);color:var(--green-tx)}
+.ec-mes.tr{background:var(--violet-bg);color:var(--violet-tx)}
+.ec-mes.pend{background:var(--cream);color:var(--muted);border:1px dashed var(--border)}
+.ec-mes-n{font-size:10px;font-weight:700;text-transform:uppercase}
+.ec-mes-ic{font-size:14px;margin:3px 0}
+.ec-mes-v{font-size:9px;font-weight:600}
+.ec-resumen{display:flex;justify-content:space-between;align-items:center;background:var(--navy);color:#fff;padding:13px 16px;border-radius:var(--rs);margin-top:14px}
+.ec-big{font-size:20px;font-weight:700}
+.ec-small{font-size:11px;opacity:.8}
+
+/* ── MOROSOS ── */
+.moroso-card{display:flex;justify-content:space-between;align-items:center;background:#fff;border:1px solid #f0c0bb;border-left:4px solid var(--red);border-radius:var(--rs);padding:13px 16px;margin-bottom:10px;box-shadow:var(--shadow)}
+.moroso-nombre{font-weight:700;font-size:15px}
+.moroso-info{font-size:12px;color:var(--muted);margin-top:2px}
+.moroso-monto{font-family:'DM Serif Display',serif;font-size:17px;color:var(--red)}
+.btn-mini{background:var(--navy);color:#fff;border:none;border-radius:8px;padding:5px 12px;font-size:12px;font-weight:600;cursor:pointer;margin-top:4px}
+.alert-ok{background:var(--green-bg);color:var(--green-tx);border-radius:var(--rs);padding:16px;text-align:center;font-weight:600}
+
+/* ── MODALES ── */
+.modal-overlay{display:none;position:fixed;inset:0;background:rgba(15,31,61,.5);z-index:9000;align-items:flex-start;justify-content:center;padding:20px;overflow-y:auto}
+.modal-overlay.active{display:flex}
+.modal{background:#fff;border-radius:var(--r);padding:22px;width:100%;max-width:520px;margin:auto;box-shadow:var(--shadow-lg)}
+.modal-title{font-family:'DM Serif Display',serif;font-size:20px;color:var(--navy);margin-bottom:16px}
+.modal-footer{display:flex;gap:10px;justify-content:flex-end;margin-top:18px}
+
+/* ── COUNT BADGE ── */
+.count-badge{display:inline-block;background:var(--cream);color:var(--muted);font-size:12px;font-weight:600;padding:4px 12px;border-radius:20px}
+.pill-red{background:#fde8e5;color:#7a1a10;padding:4px 12px;border-radius:20px;font-size:12px;font-weight:700}
