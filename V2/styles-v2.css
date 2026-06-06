@@ -238,3 +238,11 @@ input:focus,select:focus{border-color:var(--sky)}
 /* ── TALONARIO ── */
 .tal-prev-row{display:flex;justify-content:space-between;align-items:center;padding:11px 14px;border-bottom:1px solid var(--cream)}
 .tal-info{background:var(--cream);border-radius:10px;padding:14px 16px;font-size:13px;color:var(--muted);margin-bottom:16px}
+
+/* ── VER FICHA ── */
+.vf-row{display:flex;justify-content:space-between;align-items:center;padding:9px 0;border-bottom:1px solid var(--cream);font-size:14px;gap:14px}
+.vf-row span{color:var(--muted)}
+.vf-row strong{text-align:right}
+.vf-actions{display:flex;gap:10px;margin-top:16px;flex-wrap:wrap}
+.btn-sm{padding:9px 16px;font-size:13px}
+.tag-inactivo{display:inline-block;background:var(--cream);color:var(--muted);font-size:10px;font-weight:700;padding:2px 8px;border-radius:10px;text-transform:uppercase}
