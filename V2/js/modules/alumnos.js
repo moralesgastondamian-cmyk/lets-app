@@ -31,10 +31,14 @@ export function renderAlumnos() {
   const q = ($('filtroNombre').value || '').toLowerCase();
   const fCurso = $('filtroCurso').value;
   const fEstado = $('filtroEstado').value;
+  const fFamiliar = $('filtroFamiliar') ? $('filtroFamiliar').value : '';
 
   let lista = state.ALUMNOS.filter(a => {
-    const mq = !q || `${a.apellido} ${a.nombre}`.toLowerCase().includes(q);
-    return mq && (!fCurso || a.curso === fCurso) && (!fEstado || a.estado === fEstado);
+    const mq = !q
+      || `${a.apellido} ${a.nombre}`.toLowerCase().includes(q)
+      || (a.responsable || '').toLowerCase().includes(q);
+    const mFam = fFamiliar === '' || String(a.familiar || 0) === fFamiliar;
+    return mq && (!fCurso || a.curso === fCurso) && (!fEstado || a.estado === fEstado) && mFam;
   }).sort((a, b) => a.apellido.localeCompare(b.apellido));
 
   $('alCount').textContent = `${lista.length} alumno${lista.length !== 1 ? 's' : ''}`;
@@ -46,22 +50,57 @@ export function renderAlumnos() {
     const edad = calcEdad(a.nacimiento);
     const bonif = a.bonif_tipo && a.bonif_tipo !== 'ninguna'
       ? `<span class="tag-bonif">${a.bonif_tipo === 'beca' ? 'BECA' : a.bonif_tipo === 'porc' ? a.bonif_val + '%' : fmt(a.bonif_val)}</span>` : '';
-    return `<div class="al-card ${a.estado !== 'Activo' ? 'inactivo' : ''}">
+    const inactivo = a.estado !== 'Activo'
+      ? `<span class="tag-inactivo">Inactivo</span>` : '';
+    return `<div class="al-card">
       <div class="al-card-main">
-        <div class="al-card-nombre">${a.apellido}, ${a.nombre} ${bonif}</div>
+        <div class="al-card-nombre">${a.apellido}, ${a.nombre} ${bonif} ${inactivo}</div>
         <div class="al-card-curso">${a.curso}</div>
         <div class="al-card-meta">${a.responsable || ''}${edad !== null ? ' · ' + edad + ' años' : ''}${a.familiar ? ' · 🏷 familiar' : ''}</div>
       </div>
       <div class="al-card-acciones">
+        <button class="btn-icon" data-ver="${a.id}" title="Ver ficha">👁</button>
         <button class="btn-icon" data-estado="${a.id}" title="Estado de cuenta">📊</button>
         <button class="btn-icon" data-edit="${a.id}" title="Editar">✏️</button>
       </div>
     </div>`;
   }).join('');
 
+  cont.querySelectorAll('[data-ver]').forEach(b => b.addEventListener('click', () => verFicha(parseInt(b.dataset.ver))));
   cont.querySelectorAll('[data-estado]').forEach(b => b.addEventListener('click', () => estadoCuenta(parseInt(b.dataset.estado))));
   cont.querySelectorAll('[data-edit]').forEach(b => b.addEventListener('click', () => abrirModalAlumno(parseInt(b.dataset.edit))));
 }
+
+// ── Ver ficha completa (vista rápida) ──
+export function verFicha(id) {
+  const a = state.ALUMNOS.find(x => x.id === id);
+  if (!a) return;
+  const edad = calcEdad(a.nacimiento);
+  const bonifTxt = a.bonif_tipo && a.bonif_tipo !== 'ninguna'
+    ? (a.bonif_tipo === 'beca' ? 'Beca 100%' : a.bonif_tipo === 'porc' ? a.bonif_val + '%' : fmt(a.bonif_val)) + ' — ' + (a.bonif_aplica === 'ambos' ? 'cuota y matrícula' : a.bonif_aplica === 'cuota' ? 'solo cuotas' : 'solo matrícula')
+    : 'Sin bonificación';
+  $('vfTitulo').textContent = `${a.apellido}, ${a.nombre}`;
+  const row = (label, val) => val ? `<div class="vf-row"><span>${label}</span><strong>${val}</strong></div>` : '';
+  $('vfContent').innerHTML = `
+    ${row('Curso', a.curso)}
+    ${row('Estado', a.estado)}
+    ${row('Responsable', a.responsable)}
+    ${row('Celular', a.celular)}
+    ${row('Horario', a.horario)}
+    ${row('Nacimiento', a.nacimiento ? a.nacimiento + (edad !== null ? ` (${edad} años)` : '') : '')}
+    ${row('Descuento familiar', a.familiar ? 'Sí (5%)' : 'No')}
+    ${row('Bonificación', bonifTxt)}
+    ${row('Inscripción', a.fecha)}
+    ${a.obs ? row('Observaciones', a.obs) : ''}
+    <div class="vf-actions">
+      <button class="btn btn-ghost btn-sm" onclick="App.estadoCuentaDesdeFicha(${a.id})">📊 Estado de cuenta</button>
+      <button class="btn btn-primary btn-sm" onclick="App.editarDesdeFicha(${a.id})">✏️ Editar</button>
+    </div>`;
+  const m = $('modalVerFicha'); m.classList.add('active'); m.style.display = 'flex';
+}
+export function cerrarFicha() { const m = $('modalVerFicha'); m.classList.remove('active'); m.style.display = 'none'; }
+export function estadoCuentaDesdeFicha(id) { cerrarFicha(); estadoCuenta(id); }
+export function editarDesdeFicha(id) { cerrarFicha(); abrirModalAlumno(id); }
 
 // ── Estado de cuenta (modal con meses clickeables) ──
 export function estadoCuenta(id) {
@@ -107,9 +146,9 @@ export function estadoCuenta(id) {
     }, 150);
   }));
 
-  $('modalEstadoCuenta').classList.add('active');
+  const m = $('modalEstadoCuenta'); m.classList.add('active'); m.style.display = 'flex';
 }
-function closeEC() { $('modalEstadoCuenta').classList.remove('active'); }
+function closeEC() { const m = $('modalEstadoCuenta'); m.classList.remove('active'); m.style.display = 'none'; }
 
 // ── Modal editar/crear alumno ──
 export function abrirModalAlumno(id) {
@@ -133,7 +172,7 @@ export function abrirModalAlumno(id) {
   $('ma_bonif_aplica').value = v('bonif_aplica', 'ambos');
   $('ma_obs').value = v('obs');
   toggleBonifVal();
-  $('modalAlumno').classList.add('active');
+  const m = $('modalAlumno'); m.classList.add('active'); m.style.display = 'flex';
 }
 export function toggleBonifVal() {
   const t = $('ma_bonif_tipo').value;
@@ -177,7 +216,7 @@ export function guardarAlumno() {
   rebuildAlumnos();
 
   logA('ALUMNO', editingId ? `Editó alumno: ${ap}, ${nm}` : `Creó alumno: ${ap}, ${nm}`);
-  $('modalAlumno').classList.remove('active');
+  const m = $('modalAlumno'); m.classList.remove('active'); m.style.display = 'none';
   renderAlumnos();
 }
 

@@ -172,10 +172,13 @@
       <button class="btn btn-primary" style="padding:10px 18px;font-size:14px" onclick="App.abrirModalAlumno()">➕ Agregar</button>
     </div>
     <div class="search-bar">
-      <input type="text" id="filtroNombre" placeholder="Buscar nombre o apellido..." oninput="App.renderAlumnos()">
+      <input type="text" id="filtroNombre" placeholder="Buscar nombre, apellido o responsable..." oninput="App.renderAlumnos()">
       <select id="filtroCurso" onchange="App.renderAlumnos()" style="max-width:170px"><option value="">Todos los cursos</option></select>
-      <select id="filtroEstado" onchange="App.renderAlumnos()" style="max-width:130px">
-        <option value="">Todos</option><option value="Activo">Activos</option><option value="Inactivo">Inactivos</option>
+      <select id="filtroEstado" onchange="App.renderAlumnos()" style="max-width:150px">
+        <option value="">Estado: todos</option><option value="Activo">Activos</option><option value="Inactivo">Inactivos</option>
+      </select>
+      <select id="filtroFamiliar" onchange="App.renderAlumnos()" style="max-width:180px">
+        <option value="">Desc. familiar: todos</option><option value="1">Con desc. familiar</option><option value="0">Sin desc. familiar</option>
       </select>
     </div>
     <div id="alCount" style="font-size:12px;color:var(--muted);margin-bottom:10px"></div>
