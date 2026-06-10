@@ -2178,15 +2178,37 @@ function getMorosos(mes){
 function renderMorosos(){
   const mes=$('mesMoroso').value;const morosos=getMorosos(mes);
   $('countMorosos').textContent=`${morosos.length} alumnos`;
-  if(!morosos.length){$('morososList').innerHTML=`<div class="alert alert-green"><span class="alert-icon">✅</span><div>Todos pagaron la cuota de ${mes}</div></div>`;return;}
+  if(!morosos.length){$('morososList').innerHTML=`<div class="alert alert-green"><span class="alert-icon">✅</span><div>Todos los alumnos pagaron la cuota de ${mes}</div></div>`;return;}
   const tarifas=getTarifasMes(mes);
   $('morososList').innerHTML=morosos.map(a=>{
     const t=tarifas[a.curso]||Object.values(tarifas)[0];
+    const descFam=a.familiar?Math.round(t.transferencia*0.05):0;
+    const cuotaConDesc=t.transferencia-descFam;
+    const responsable=(a.responsable||a.nombre||'').trim();
+    const cel=(a.celular||'').replace(/\D/g,'');
+    const msg=encodeURIComponent(
+      `Hola ${responsable}! 👋 Te escribimos desde Let's Innovation English Institute.\n\n`+
+      `Te recordamos que tenés pendiente la cuota de *${mes} 2026* por *${fmt(cuotaConDesc)}*.\n\n`+
+      `Podés abonar por transferencia o en efectivo en el instituto (Lavalle 154, Bernal).\n\nMuchas gracias! 🎓`
+    );
+    const waUrl=cel
+      ? `https://wa.me/549${cel}?text=${msg}`
+      : `https://wa.me/?text=${msg}`;
     return `<div class="moroso-card">
-      <div><div class="moroso-name">${a.apellido}, ${a.nombre}</div>
-      <div class="moroso-info">${a.curso}${a.familiar?' · 🏷 Fam':''}</div></div>
-      <div style="text-align:right"><div class="moroso-amount">${fmt(t.transferencia)}</div>
-      <div style="font-size:10px;color:var(--muted)">cuota estimada</div></div>
+      <div>
+        <div class="moroso-name">${a.apellido}, ${a.nombre}</div>
+        <div class="moroso-info">${a.curso} ${a.familiar?'· 🏷 Desc. familiar':''}${a.celular?` · 📱 ${a.celular}`:''}</div>
+      </div>
+      <div style="display:flex;align-items:center;gap:12px">
+        <div style="text-align:right">
+          <div class="moroso-amount">${fmt(t.transferencia)}</div>
+          <div style="font-size:11px;color:var(--muted)">cuota estimada</div>
+        </div>
+        <a href="${waUrl}" target="_blank"
+           style="display:inline-flex;align-items:center;gap:5px;background:#25D366;color:#fff;padding:7px 13px;border-radius:7px;font-weight:600;font-size:12px;text-decoration:none;white-space:nowrap;flex-shrink:0">
+          💬 WhatsApp
+        </a>
+      </div>
     </div>`;
   }).join('');
 }
