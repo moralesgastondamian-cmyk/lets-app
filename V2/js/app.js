@@ -1,6 +1,9 @@
 // ════════════════════════════════════════════════
 //  app.js — punto de entrada principal
 // ════════════════════════════════════════════════
+export const VERSION = '2.1.0';
+export const BUILD = '2026-07-14';
+
 import { $ } from './core/dom.js';
 import { state } from './core/store.js';
 import { initUsers, trySession, doLogin, doLogout } from './core/auth.js';
@@ -52,6 +55,11 @@ window.App = {
   imprimirTalonario: Talonario.imprimirTalonario,
 };
 
+function stampVersion() {
+  const b = document.querySelector('.v2-banner');
+  if (b) b.textContent = `VERSIÓN MODULAR v${VERSION} · build ${BUILD} — EN PRUEBAS`;
+}
+
 function initHeader() {
   const d = new Date();
   const el = $('headerDate');
@@ -88,6 +96,7 @@ function startApp() {
 }
 
 function boot() {
+  stampVersion();
   initHeader();
   initUsers().then(() => { if (trySession()) startApp(); });
 
