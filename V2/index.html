@@ -334,6 +334,79 @@
 
 <div class="v2-banner">VERSIÓN MODULAR v2 — EN PRUEBAS · App oficial en /lets-app/</div>
 
+<!-- ══════════ ARRANQUE SEGURO ══════════ -->
+<div id="bootError" style="display:none;position:fixed;inset:0;background:#0f1f3d;color:#fff;z-index:99999;padding:28px;font-family:system-ui,sans-serif;overflow-y:auto">
+  <div style="max-width:600px;margin:40px auto;background:#fff;color:#1a1814;border-radius:14px;padding:28px">
+    <div style="font-size:20px;font-weight:700;color:#c0392b;margin-bottom:8px">⚠️ La app no pudo arrancar</div>
+    <p style="color:#7a7470;font-size:14px;margin-bottom:18px">Falta un archivo o está desactualizado en GitHub. El detalle exacto:</p>
+    <pre id="bootErrorMsg" style="background:#faf8f4;border:1px solid #ddd8ce;border-radius:8px;padding:14px;font-size:12px;white-space:pre-wrap;word-break:break-word;color:#7a1a10"></pre>
+    <div id="bootErrorHint" style="background:#fef9ee;border:1px solid #f5dfa0;border-radius:8px;padding:14px;margin-top:14px;font-size:14px;color:#7a5010"></div>
+    <button onclick="bootHardReload()" style="margin-top:18px;width:100%;padding:13px;background:#0f1f3d;color:#fff;border:none;border-radius:10px;font-weight:700;font-size:15px;cursor:pointer">🔄 Limpiar caché y reintentar</button>
+  </div>
+</div>
+
+<script>
+// 1) Matar cualquier service worker que cachee esta carpeta (viene de la app oficial)
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.getRegistrations().then(function (rs) {
+    rs.forEach(function (r) {
+      if (r.scope.indexOf('/V2/') !== -1 || r.scope.endsWith('/lets-app/')) r.unregister();
+    });
+  }).catch(function () {});
+}
+
+// 2) Recarga dura: borra cachés y vuelve a pedir todo
+function bootHardReload() {
+  var done = function () { location.reload(true); };
+  if (window.caches) {
+    caches.keys().then(function (ks) { return Promise.all(ks.map(function (k) { return caches.delete(k); })); }).then(done).catch(done);
+  } else { done(); }
+}
+
+// 3) Traducir el error técnico a algo accionable
+function bootShowError(msg) {
+  var box = document.getElementById('bootError');
+  if (!box || box.style.display === 'block') return;
+  document.getElementById('bootErrorMsg').textContent = msg;
+
+  var s = String(msg);
+  var hint = 'Revisá en GitHub que el archivo exista y esté completo, después volvé a subirlo.';
+
+  // Nombre del archivo: primero el que aparece entre comillas, si no el primer .js del mensaje
+  var mRuta = s.match(/['\"]([^'\"]*\.js)['\"]/);
+  var archivo = mRuta ? mRuta[1].replace(/^.*\//, '') : null;
+  if (!archivo) { var mJs = s.match(/([\w.-]+\.js)/); archivo = mJs ? mJs[1] : null; }
+
+  // Nombre del export faltante: cubre el formato de Chrome y el de otros motores
+  var mExp = s.match(/export named ['\"](\w+)['\"]/) || s.match(/Named export ['\"](\w+)['\"]/);
+
+  if (mExp && archivo) {
+    hint = 'El archivo <b>' + archivo + '</b> está incompleto o quedó pisado por una versión vieja: '
+         + 'le falta <b>' + mExp[1] + '</b>.<br><br>Volvé a subirlo a GitHub y forzá la recarga.';
+  } else if (archivo) {
+    hint = 'No se pudo cargar <b>' + archivo + '</b>. Verificá que exista en GitHub, en su carpeta correcta, '
+         + 'y que no esté vacío.';
+  }
+  document.getElementById('bootErrorHint').innerHTML = hint;
+  box.style.display = 'block';
+}
+
+// 4) Capturar errores de carga de módulos
+window.addEventListener('error', function (e) {
+  if (e.message) bootShowError(e.message);
+}, true);
+window.addEventListener('unhandledrejection', function (e) {
+  if (e.reason) bootShowError(String(e.reason && e.reason.message ? e.reason.message : e.reason));
+});
+
+// 5) Red de seguridad: si a los 6s la app no arrancó, avisar igual
+setTimeout(function () {
+  if (!window.App) {
+    bootShowError('La aplicación no terminó de cargar. Es probable que un módulo no se haya podido leer.');
+  }
+}, 6000);
+</script>
+
 <script type="module" src="js/app.js"></script>
 </body>
 </html>
