@@ -5,7 +5,7 @@ import { $, fmt, today, MESES_LECTIVOS } from '../core/dom.js';
 import { state } from '../core/store.js';
 import { logA } from '../core/auth.js';
 import { savePago } from '../core/data.js';
-import { getTarifa, usaTarifaNueva } from '../data/tarifas.js';
+import { getTarifa, usaTarifaNueva } from '../data/lista-tarifas.js';
 import { registerPage } from '../core/router.js';
 
 let selectedAlumno = null;

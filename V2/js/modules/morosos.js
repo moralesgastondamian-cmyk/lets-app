@@ -3,7 +3,7 @@
 // ════════════════════════════════════════════════
 import { $, fmt, MESES_LECTIVOS } from '../core/dom.js';
 import { state } from '../core/store.js';
-import { getTarifa } from '../data/tarifas.js';
+import { getTarifa } from '../data/lista-tarifas.js';
 import { registerPage, showPage } from '../core/router.js';
 
 export function renderMorosos() {
