@@ -5,7 +5,7 @@ import { $, fmt } from '../core/dom.js';
 import { state, KEYS, saveJ } from '../core/store.js';
 import { logA } from '../core/auth.js';
 import { FS } from '../core/firebase.js';
-import { TARIFAS_BASE } from '../data/tarifas.js';
+import { TARIFAS_BASE } from '../data/lista-tarifas.js';
 import { registerPage } from '../core/router.js';
 
 let viewing = 'actual'; // 'actual' (Mar-Abr) o 'nueva' (Mayo en adelante)

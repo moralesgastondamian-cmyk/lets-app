@@ -5,7 +5,7 @@ import { $, fmt, MESES_LECTIVOS, MESES } from '../core/dom.js';
 import { state, KEYS, loadJ, saveJ } from '../core/store.js';
 import { logA } from '../core/auth.js';
 import { FS } from '../core/firebase.js';
-import { VALOR_HORA, DOCENTES, CURSOS_DOCENTES, horasSemanalesDocente } from '../data/docentes.js';
+import { VALOR_HORA, DOCENTES, CURSOS_DOCENTES, horasSemanalesDocente } from '../data/lista-docentes.js';
 import { registerPage } from '../core/router.js';
 
 // Estructura de haberes por mes: { [mes]: { [docente]: { horas, extras:[{desc,monto}], valorHora } } }

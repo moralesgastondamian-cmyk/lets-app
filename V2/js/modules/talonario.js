@@ -4,8 +4,8 @@
 import { $, fmt, MESES_LECTIVOS } from '../core/dom.js';
 import { state } from '../core/store.js';
 import { logA } from '../core/auth.js';
-import { getTarifa } from '../data/tarifas.js';
-import { TARIFAS_BASE } from '../data/tarifas.js';
+import { getTarifa } from '../data/lista-tarifas.js';
+import { TARIFAS_BASE } from '../data/lista-tarifas.js';
 import { LOGO_B64 } from '../data/logo.js';
 import { registerPage } from '../core/router.js';
 
