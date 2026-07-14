@@ -3,8 +3,8 @@
 // ════════════════════════════════════════════════
 import { FS, showSyncStatus } from './firebase.js';
 import { KEYS, loadJ, saveJ, state } from './store.js';
-import { ALUMNOS_BASE } from '../data/alumnos.js';
-import { TARIFAS_BASE } from '../data/tarifas.js';
+import { ALUMNOS_BASE } from '../data/lista-alumnos.js';
+import { TARIFAS_BASE } from '../data/lista-tarifas.js';
 
 // Reconstruir la lista completa de alumnos (base + custom)
 export function rebuildAlumnos() {
