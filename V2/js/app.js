@@ -26,6 +26,8 @@ window.App = {
   registrarPago: Pagos.registrarPago,
   limpiarForm: Pagos.limpiarForm,
   selectAlumnoById: Pagos.selectAlumnoById,
+  descargarUltimoRecibo: Pagos.descargarUltimoRecibo,
+  descargarReciboPago: Pagos.descargarReciboPago,
   renderHistorial,
   exportCSV,
   renderAlumnos: Alumnos.renderAlumnos,
