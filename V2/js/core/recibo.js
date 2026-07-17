@@ -3,6 +3,7 @@
 // ════════════════════════════════════════════════
 import { fmt } from './dom.js';
 import { LOGO_B64 } from '../data/logo.js';
+import { state } from './store.js';
 
 // ─────────────────────────────────────────────────
 //  PDF (con jsPDF) — para imprimir / archivar
@@ -160,39 +161,51 @@ export function descargarReciboJPG(p) {
   a.click();
 }
 
-// ── Compartir por WhatsApp (u otra app) el recibo en JPG ──
-export async function compartirReciboWhatsApp(p) {
+// ── Compartir por WhatsApp: abre el chat del alumno + descarga el JPG ──
+export function compartirReciboWhatsApp(p) {
   if (!p) { alert('No hay pago para compartir'); return; }
+
+  // 1) Descargar el JPG para poder adjuntarlo en el chat
   const canvas = construirCanvas(p);
-
-  // Convertir el canvas a un archivo de imagen
-  const blob = await new Promise(res => canvas.toBlob(res, 'image/jpeg', 0.95));
-  const file = new File([blob], nombreArchivo(p) + '.jpg', { type: 'image/jpeg' });
-
-  const texto = `Comprobante de pago — ${p.alumnoNombre}\n${p.concepto}${p.mes ? ' · ' + p.mes : ''}\nTotal: ${fmt(p.total)}\nLet's Innovation English Institute`;
-
-  // 1) Si el dispositivo soporta compartir archivos (celulares modernos): menú nativo con WhatsApp
-  if (navigator.canShare && navigator.canShare({ files: [file] })) {
-    try {
-      await navigator.share({ files: [file], text: texto });
-      return;
-    } catch (e) {
-      if (e.name === 'AbortError') return; // el usuario canceló
-      // si falla, cae al plan B
-    }
-  }
-
-  // 2) Plan B (compu / navegadores sin compartir archivos):
-  //    descarga el JPG y abre WhatsApp Web con el texto listo para pegar la imagen
   const a = document.createElement('a');
   a.href = canvas.toDataURL('image/jpeg', 0.95);
   a.download = nombreArchivo(p) + '.jpg';
   a.click();
+
+  // 2) Buscar el celular del alumno en su ficha
+  const alumno = state.ALUMNOS.find(x => x.id === p.alumnoId);
+  const cel = alumno ? normalizarCelular(alumno.celular) : '';
+
+  // 3) Texto del comprobante
+  const texto =
+    `¡Hola! Te paso el comprobante de pago 🧾\n\n` +
+    `*${p.alumnoNombre}*\n` +
+    `${p.concepto}${p.mes ? ' · ' + p.mes : ''}\n` +
+    `Total: ${fmt(p.total)}\n` +
+    `Forma: ${p.forma === 'efectivo' ? 'Efectivo' : 'Transferencia'}\n\n` +
+    `Let's Innovation English Institute`;
+
+  // 4) Abrir el chat directo del alumno (o el selector si no hay celular)
+  const url = cel
+    ? `https://wa.me/${cel}?text=${encodeURIComponent(texto)}`
+    : `https://wa.me/?text=${encodeURIComponent(texto)}`;
+
   setTimeout(() => {
-    alert('Se descargó el comprobante en JPG.\nAhora se abre WhatsApp: adjuntá la imagen descargada al chat.');
-    window.open('https://wa.me/?text=' + encodeURIComponent(texto), '_blank');
+    if (!cel) alert('Este alumno no tiene celular cargado en su ficha.\nSe abre WhatsApp para elegir el contacto. La imagen ya se descargó.');
+    window.open(url, '_blank');
   }, 400);
 }
 
-// Compatibilidad: el nombre viejo sigue funcionando (PDF por defecto)
+// Convierte un celular argentino al formato de WhatsApp: 54 9 + número
+function normalizarCelular(cel) {
+  if (!cel) return '';
+  let n = String(cel).replace(/[^0-9]/g, '');
+  if (!n) return '';
+  if (n.startsWith('0')) n = n.slice(1);
+  if (n.startsWith('54')) n = n.slice(2);
+  if (n.startsWith('9'))  n = n.slice(1);
+  n = n.replace(/^(\d{2,4})15/, '$1');
+  return '549' + n;
+}
+
 export function descargarRecibo(p) { descargarReciboPDF(p); }
