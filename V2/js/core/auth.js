@@ -18,11 +18,11 @@ export function hp(p) {
 }
 
 // ── Lista de accesos posibles ──
-export const ACCESOS = ['dashboard','alumnos','cobrar','historial','morosos','rentabilidad','tarifas','haberes','talonario','auditoria','usuarios','canDelete'];
+export const ACCESOS = ['dashboard','alumnos','cobrar','historial','morosos','rentabilidad','tarifas','haberes','talonario','respaldo','auditoria','usuarios','canDelete'];
 
 // ── Usuarios por defecto (primer arranque) ──
 function defaultUsers() {
-  const accAdmin = ['dashboard','alumnos','cobrar','historial','morosos','rentabilidad','tarifas','haberes','talonario','auditoria','usuarios','canDelete'];
+  const accAdmin = ['dashboard','alumnos','cobrar','historial','morosos','rentabilidad','tarifas','haberes','talonario','respaldo','auditoria','usuarios','canDelete'];
   return [
     { id:'u1', n:'Administrador 1', u:'admin1', h:hp('admin2026'), r:'admin', a:accAdmin, on:1 },
     { id:'u2', n:'Administrador 2', u:'admin2', h:hp('admin2026'), r:'admin', a:accAdmin, on:1 },
@@ -112,6 +112,32 @@ export function trySession() {
     state.CU = u;
     return true;
   } catch (e) { return false; }
+}
+
+// ── Migración: agrega permisos nuevos a los admin existentes ──
+// (evita tener que borrar y recrear usuarios cuando sumamos una pestaña)
+const PERMISOS_NUEVOS = ['respaldo'];
+export async function migrarPermisos() {
+  if (!state.CU) return;
+  const rol = state.CU.r || state.CU.rol;
+  if (rol !== 'admin') return;
+  const acc = state.CU.a || state.CU.acc || [];
+  const faltantes = PERMISOS_NUEVOS.filter(p => !acc.includes(p));
+  if (!faltantes.length) return;
+
+  faltantes.forEach(p => acc.push(p));
+  state.CU.a = acc;
+
+  // Actualizar en localStorage
+  const users = loadJ(KEYS.USERS) || [];
+  const u = users.find(x => x.id === state.CU.id);
+  if (u) { u.a = acc; saveJ(KEYS.USERS, users); }
+
+  // Actualizar en Firebase
+  if (FS && state.CU.id) {
+    try { await FS.set('usuarios', state.CU.id, state.CU); } catch (e) {}
+  }
+  console.log('Permisos actualizados:', faltantes.join(', '));
 }
 
 // ── Permisos ──
