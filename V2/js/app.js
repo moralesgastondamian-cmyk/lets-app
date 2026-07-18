@@ -1,7 +1,7 @@
 // ════════════════════════════════════════════════
 //  app.js — punto de entrada principal
 // ════════════════════════════════════════════════
-export const VERSION = '2.4.0';
+export const VERSION = '2.5.0';
 export const BUILD = '2026-07-14';
 
 import { $ } from './core/dom.js';
@@ -12,6 +12,7 @@ import { loadLocal, loadFirebase, listenPagos } from './core/data.js';
 
 import * as Pagos from './modules/pagos.js';
 import { renderHistorial, exportCSV } from './modules/historial.js';
+import * as EditarPago from './modules/editarPago.js';
 import * as Alumnos from './modules/alumnos.js';
 import { renderMorosos } from './modules/morosos.js';
 import { renderDashboard } from './modules/dashboard.js';
@@ -32,6 +33,10 @@ window.App = {
   descargarReciboPagoJPG: Pagos.descargarReciboPagoJPG,
   compartirUltimoWhatsApp: Pagos.compartirUltimoWhatsApp,
   compartirPagoWhatsApp: Pagos.compartirPagoWhatsApp,
+  verPago: EditarPago.verPago,
+  editarPago: EditarPago.editarPago,
+  guardarEdicionPago: EditarPago.guardarEdicionPago,
+  editarPagoDesdeVista: EditarPago.editarPagoDesdeVista,
   renderHistorial,
   exportCSV,
   renderAlumnos: Alumnos.renderAlumnos,
