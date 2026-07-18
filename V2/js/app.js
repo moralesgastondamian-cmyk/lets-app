@@ -1,18 +1,19 @@
 // ════════════════════════════════════════════════
 //  app.js — punto de entrada principal
 // ════════════════════════════════════════════════
-export const VERSION = '2.5.0';
+export const VERSION = '2.6.0';
 export const BUILD = '2026-07-14';
 
 import { $ } from './core/dom.js';
 import { state } from './core/store.js';
-import { initUsers, trySession, doLogin, doLogout } from './core/auth.js';
+import { initUsers, trySession, doLogin, doLogout, migrarPermisos } from './core/auth.js';
 import { buildTabs, showPage, firstPage } from './core/router.js';
 import { loadLocal, loadFirebase, listenPagos } from './core/data.js';
 
 import * as Pagos from './modules/pagos.js';
 import { renderHistorial, exportCSV } from './modules/historial.js';
 import * as EditarPago from './modules/editarPago.js';
+import * as Respaldo from './modules/respaldo.js';
 import * as Alumnos from './modules/alumnos.js';
 import { renderMorosos } from './modules/morosos.js';
 import { renderDashboard } from './modules/dashboard.js';
@@ -37,6 +38,11 @@ window.App = {
   editarPago: EditarPago.editarPago,
   guardarEdicionPago: EditarPago.guardarEdicionPago,
   editarPagoDesdeVista: EditarPago.editarPagoDesdeVista,
+  renderRespaldo: Respaldo.renderRespaldo,
+  exportarRespaldo: Respaldo.exportarRespaldo,
+  exportarPagosCSV: Respaldo.exportarPagosCSV,
+  importarRespaldo: Respaldo.importarRespaldo,
+  sincronizarTodo: Respaldo.sincronizarTodo,
   renderHistorial,
   exportCSV,
   renderAlumnos: Alumnos.renderAlumnos,
@@ -90,6 +96,7 @@ function startApp() {
   $('URM').textContent = rol === 'admin' ? 'Administrador' : rol === 'cajero' ? 'Cajero' : 'Usuario';
 
   loadLocal();
+  migrarPermisos().then(() => buildTabs());
   buildTabs();
   showPage(firstPage());
 
