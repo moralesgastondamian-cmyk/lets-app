@@ -332,6 +332,38 @@
   </div>
 </div>
 
+<!-- MODAL VER PAGO -->
+<div class="modal-overlay" id="modalVerPago" style="display:none">
+  <div class="modal">
+    <div class="modal-title" id="vpTitulo">Detalle del pago</div>
+    <div id="vpContent"></div>
+    <div class="modal-footer"><button class="btn btn-ghost" onclick="var m=document.getElementById('modalVerPago');m.classList.remove('active');m.style.display='none'">Cerrar</button></div>
+  </div>
+</div>
+
+<!-- MODAL EDITAR PAGO -->
+<div class="modal-overlay" id="modalEditarPago" style="display:none">
+  <div class="modal">
+    <div class="modal-title" id="epTitulo">Editar pago</div>
+    <div class="form-grid">
+      <div class="form-row"><label>Fecha</label><input type="date" id="ep_fecha"></div>
+      <div class="form-row"><label>Forma de pago</label>
+        <select id="ep_forma"><option value="transferencia">🏦 Transferencia</option><option value="efectivo">💵 Efectivo</option></select>
+      </div>
+      <div class="form-row" id="ep_mesRow"><label>Mes</label><select id="ep_mes"></select></div>
+      <div class="form-row"><label>Total abonado ($)</label><input type="number" id="ep_total"></div>
+    </div>
+    <div class="form-row"><label>Observaciones</label><input type="text" id="ep_obs"></div>
+    <div style="background:#fef9ee;border:1px solid #f5dfa0;border-radius:8px;padding:10px 13px;font-size:12px;color:#7a5010;margin-top:6px">
+      ℹ️ Editar un pago queda registrado en la Auditoría.
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="var m=document.getElementById('modalEditarPago');m.classList.remove('active');m.style.display='none'">Cancelar</button>
+      <button class="btn btn-primary" onclick="App.guardarEdicionPago()">💾 Guardar cambios</button>
+    </div>
+  </div>
+</div>
+
 <div class="v2-banner">VERSIÓN MODULAR v2 — EN PRUEBAS · App oficial en /lets-app/</div>
 
 <!-- ══════════ ARRANQUE SEGURO ══════════ -->

@@ -251,3 +251,9 @@ input:focus,select:focus{border-color:var(--sky)}
 .btn-wa{background:#25d366;color:#fff}
 .btn-wa:active{background:#1da851}
 .btn-icon.wa{border-color:#a8e6c0;color:#1da851}
+
+/* ── VER/EDITAR PAGO ── */
+.vp-row{display:flex;justify-content:space-between;align-items:center;padding:9px 0;border-bottom:1px solid var(--cream);font-size:14px;gap:14px}
+.vp-row span{color:var(--muted)}
+.vp-row strong{text-align:right}
+.vp-actions{display:flex;gap:8px;margin-top:16px;flex-wrap:wrap}
