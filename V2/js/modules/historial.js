@@ -50,8 +50,10 @@ export function renderHistorial() {
         <div class="pago-fecha">${p.fecha}</div>
       </div>
       <div class="pago-acciones">
+        <button class="btn-icon" data-ver="${p.id}" title="Ver detalle">👁</button>
         <button class="btn-icon wa" data-wa="${p.id}" title="Enviar por WhatsApp">📲</button>
         <button class="btn-icon" data-recibo="${p.id}" title="Descargar recibo PDF">🧾</button>
+        <button class="btn-icon" data-edit="${p.id}" title="Editar">✏️</button>
         ${canDelete() ? `<button class="btn-icon danger" data-del="${p.id}" title="Eliminar">🗑</button>` : ''}
       </div>
     </div>`;
@@ -60,6 +62,12 @@ export function renderHistorial() {
   $('histTotal').textContent = `${f.length} registros · Total: ${fmt(total)}`;
 
   // Eventos de eliminar
+  cont.querySelectorAll('[data-ver]').forEach(btn => {
+    btn.addEventListener('click', () => { if (window.App) window.App.verPago(parseInt(btn.dataset.ver)); });
+  });
+  cont.querySelectorAll('[data-edit]').forEach(btn => {
+    btn.addEventListener('click', () => { if (window.App) window.App.editarPago(parseInt(btn.dataset.edit)); });
+  });
   cont.querySelectorAll('[data-wa]').forEach(btn => {
     btn.addEventListener('click', () => { if (window.App) window.App.compartirPagoWhatsApp(parseInt(btn.dataset.wa)); });
   });
