@@ -257,3 +257,10 @@ input:focus,select:focus{border-color:var(--sky)}
 .vp-row span{color:var(--muted)}
 .vp-row strong{text-align:right}
 .vp-actions{display:flex;gap:8px;margin-top:16px;flex-wrap:wrap}
+
+/* ── RESPALDO ── */
+.resp-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:12px}
+.resp-stat{background:var(--cream);border-radius:var(--rs);padding:16px;text-align:center}
+.resp-num{display:block;font-family:'DM Serif Display',serif;font-size:24px;color:var(--navy)}
+.resp-lbl{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.4px}
+input[type=file]{padding:10px;font-size:13px;background:var(--cream)}
