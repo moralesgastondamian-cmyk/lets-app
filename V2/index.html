@@ -382,6 +382,58 @@
   </div>
 </div>
 
+<!-- AUDITORÍA -->
+<div class="page" id="page-auditoria">
+  <div class="card">
+    <div class="card-title">🔍 Auditoría</div>
+    <p style="color:var(--muted);font-size:13px;margin-bottom:14px">Registro de todas las acciones realizadas en el sistema, desde cualquier dispositivo.</p>
+    <div class="search-bar">
+      <input type="text" id="audBuscar" placeholder="Buscar acción, usuario..." oninput="App.renderAuditoria()">
+      <select id="audTipo" onchange="App.renderAuditoria()" style="max-width:190px"><option value="">Todas las acciones</option></select>
+    </div>
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;flex-wrap:wrap;gap:8px">
+      <span id="audCount" style="font-size:12px;color:var(--muted)"></span>
+      <button class="btn btn-ghost" style="padding:8px 14px;font-size:13px" onclick="App.exportarAuditoria()">📥 Exportar CSV</button>
+    </div>
+    <div id="auditoriaList"></div>
+  </div>
+</div>
+
+<!-- USUARIOS -->
+<div class="page" id="page-usuarios">
+  <div class="card">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;flex-wrap:wrap;gap:10px">
+      <div class="card-title" style="margin:0">👤 Usuarios</div>
+      <button class="btn btn-primary" style="padding:10px 18px;font-size:14px" onclick="App.abrirModalUsuario()">➕ Nuevo usuario</button>
+    </div>
+    <div id="usuariosList"></div>
+  </div>
+</div>
+
+<!-- MODAL USUARIO -->
+<div class="modal-overlay" id="modalUsuario" style="display:none">
+  <div class="modal">
+    <div class="modal-title" id="muTitulo">Nuevo usuario</div>
+    <div class="form-grid">
+      <div class="form-row"><label>Nombre completo *</label><input type="text" id="mu_nombre" placeholder="Ej: María González"></div>
+      <div class="form-row"><label>Usuario de acceso *</label><input type="text" id="mu_usuario" placeholder="Ej: maria" autocomplete="off"></div>
+      <div class="form-row"><label>Contraseña</label><input type="password" id="mu_pass" autocomplete="new-password">
+        <div id="mu_passHint" style="font-size:11px;color:var(--muted);margin-top:4px"></div></div>
+      <div class="form-row"><label>Rol</label>
+        <select id="mu_rol"><option value="cajero">Cajero</option><option value="admin">Administrador</option></select>
+      </div>
+    </div>
+    <div class="form-row">
+      <label>Permisos — a qué pestañas accede</label>
+      <div id="mu_permisos" class="perm-grid"></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="App.cerrarModalUsuario()">Cancelar</button>
+      <button class="btn btn-primary" onclick="App.guardarUsuario()">💾 Guardar</button>
+    </div>
+  </div>
+</div>
+
 <!-- MODAL VER PAGO -->
 <div class="modal-overlay" id="modalVerPago" style="display:none">
   <div class="modal">

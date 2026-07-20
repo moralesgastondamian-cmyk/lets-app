@@ -264,3 +264,21 @@ input:focus,select:focus{border-color:var(--sky)}
 .resp-num{display:block;font-family:'DM Serif Display',serif;font-size:24px;color:var(--navy)}
 .resp-lbl{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.4px}
 input[type=file]{padding:10px;font-size:13px;background:var(--cream)}
+
+/* ── USUARIOS ── */
+.user-card{display:flex;justify-content:space-between;align-items:center;gap:12px;background:#fff;border:1px solid var(--border);border-radius:var(--rs);padding:14px 16px;margin-bottom:10px;box-shadow:var(--shadow)}
+.user-nombre{font-weight:700;font-size:15px;display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.user-datos{font-size:12px;color:var(--sky);margin-top:2px}
+.user-permisos{font-size:11px;color:var(--muted);margin-top:2px}
+.user-acciones{display:flex;gap:6px;flex-shrink:0}
+.tag-yo{background:var(--gold);color:#fff;font-size:9px;font-weight:700;padding:2px 8px;border-radius:10px;text-transform:uppercase}
+.perm-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:8px;background:var(--cream);border-radius:var(--rs);padding:12px}
+.perm-item{display:flex;align-items:center;gap:8px;font-size:13px;font-weight:500;color:var(--text);text-transform:none;letter-spacing:0;margin:0;cursor:pointer}
+.perm-item input{width:17px;height:17px;accent-color:var(--navy);margin:0}
+
+/* ── AUDITORÍA ── */
+.aud-card{display:flex;gap:12px;align-items:flex-start;background:#fff;border:1px solid var(--border);border-radius:var(--rs);padding:12px 14px;margin-bottom:8px}
+.aud-icono{font-size:18px;flex-shrink:0}
+.aud-desc{font-weight:600;font-size:14px}
+.aud-det{font-size:12px;color:var(--muted);margin-top:2px}
+.aud-meta{font-size:11px;color:var(--muted);margin-top:4px}
