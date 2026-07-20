@@ -154,12 +154,21 @@ export function canDelete() {
 
 // ── Auditoría ──
 export function logA(tipo, desc, det) {
-  const log = loadJ(KEYS.AUDIT) || [];
-  log.unshift({
+  const registro = {
     ts: new Date().toISOString(),
     u: state.CU ? state.CU.u : ($('LU') ? $('LU').value : '?'),
     n: state.CU ? state.CU.n : '—',
     tipo, desc, det: det || ''
-  });
+  };
+
+  // Guardar local (rápido, siempre funciona)
+  const log = loadJ(KEYS.AUDIT) || [];
+  log.unshift(registro);
   saveJ(KEYS.AUDIT, log.slice(0, 500));
+
+  // Subir a la nube para verlo desde cualquier dispositivo (sin bloquear)
+  if (FS) {
+    const id = registro.ts.replace(/[^0-9]/g, '') + '_' + (registro.u || 'x');
+    FS.set('auditoria', id, registro).catch(() => {});
+  }
 }

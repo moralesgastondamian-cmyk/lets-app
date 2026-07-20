@@ -16,6 +16,8 @@ const TABS = [
   ['haberes',      '👩‍🏫 Haberes'],
   ['talonario',    '🖨 Talonario'],
   ['respaldo',     '💾 Respaldo'],
+  ['auditoria',    '🔍 Auditoría'],
+  ['usuarios',     '👤 Usuarios'],
 ];
 
 // Registro de funciones de render por página (cada módulo registra la suya)
@@ -53,6 +55,6 @@ export function showPage(name) {
 
 // Primera página disponible para el usuario
 export function firstPage() {
-  const order = ['dashboard','alumnos','cobrar','historial','morosos','rentabilidad','tarifas','haberes','talonario','respaldo'];
+  const order = ['dashboard','alumnos','cobrar','historial','morosos','rentabilidad','tarifas','haberes','talonario','respaldo','auditoria','usuarios'];
   return order.find(p => hA(p)) || 'cobrar';
 }
