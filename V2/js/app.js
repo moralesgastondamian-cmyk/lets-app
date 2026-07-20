@@ -1,7 +1,7 @@
 // ════════════════════════════════════════════════
 //  app.js — punto de entrada principal
 // ════════════════════════════════════════════════
-export const VERSION = '2.6.0';
+export const VERSION = '2.7.0';
 export const BUILD = '2026-07-14';
 
 import { $ } from './core/dom.js';
@@ -14,6 +14,8 @@ import * as Pagos from './modules/pagos.js';
 import { renderHistorial, exportCSV } from './modules/historial.js';
 import * as EditarPago from './modules/editarPago.js';
 import * as Respaldo from './modules/respaldo.js';
+import * as Usuarios from './modules/usuarios.js';
+import * as Auditoria from './modules/auditoria.js';
 import * as Alumnos from './modules/alumnos.js';
 import { renderMorosos } from './modules/morosos.js';
 import { renderDashboard } from './modules/dashboard.js';
@@ -43,6 +45,12 @@ window.App = {
   exportarPagosCSV: Respaldo.exportarPagosCSV,
   importarRespaldo: Respaldo.importarRespaldo,
   sincronizarTodo: Respaldo.sincronizarTodo,
+  renderUsuarios: Usuarios.renderUsuarios,
+  abrirModalUsuario: Usuarios.abrirModalUsuario,
+  guardarUsuario: Usuarios.guardarUsuario,
+  cerrarModalUsuario: Usuarios.cerrarModalUsuario,
+  renderAuditoria: Auditoria.renderAuditoria,
+  exportarAuditoria: Auditoria.exportarAuditoria,
   renderHistorial,
   exportCSV,
   renderAlumnos: Alumnos.renderAlumnos,
