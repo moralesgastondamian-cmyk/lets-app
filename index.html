@@ -607,30 +607,146 @@ td{padding:9px 12px;vertical-align:middle}
 
 <!-- TARIFAS -->
 <div class="page" id="page-tarifas">
-  <div class="alert alert-amber"><span class="alert-icon">⚠️</span><div><strong>Mayo 2026:</strong> Las tarifas de Mayo serán ajustadas. Actualizalas cuando se confirme el ajuste.</div></div>
+
+  <!-- Selector de mes -->
+  <div class="card" style="padding:16px 22px">
+    <div style="display:flex;gap:12px;align-items:center;flex-wrap:wrap">
+      <label style="margin:0;font-weight:700;font-size:13px;color:var(--navy)">📅 Mes a editar:</label>
+      <select id="tarMes" onchange="renderTarifas()" style="width:180px;font-weight:600">
+        <option value="Marzo">Marzo 2026</option>
+        <option value="Abril">Abril 2026</option>
+        <option value="Mayo">Mayo 2026</option>
+        <option value="Junio">Junio 2026</option>
+        <option value="Julio">Julio 2026</option>
+        <option value="Agosto">Agosto 2026</option>
+        <option value="Septiembre">Septiembre 2026</option>
+        <option value="Octubre">Octubre 2026</option>
+        <option value="Noviembre">Noviembre 2026</option>
+        <option value="Diciembre">Diciembre 2026</option>
+      </select>
+      <span style="color:var(--muted);font-size:11px">|</span>
+      <label style="margin:0;font-weight:600;font-size:12px;color:var(--muted)">📋 Copiar tarifas desde:</label>
+      <select id="tarCopiarDe" style="width:150px;font-size:12px">
+        <option value="">— elegir mes —</option>
+        <option value="Marzo">Marzo</option>
+        <option value="Abril">Abril</option>
+        <option value="Mayo">Mayo</option>
+        <option value="Junio">Junio</option>
+        <option value="Julio">Julio</option>
+        <option value="Agosto">Agosto</option>
+        <option value="Septiembre">Septiembre</option>
+        <option value="Octubre">Octubre</option>
+        <option value="Noviembre">Noviembre</option>
+        <option value="Diciembre">Diciembre</option>
+      </select>
+      <button class="btn btn-ghost btn-sm" onclick="copiarTarifasDeMes()">↩ Copiar</button>
+    </div>
+  </div>
+
+  <!-- Panel de aumento masivo -->
   <div class="card">
-    <div class="card-title">Tarifas vigentes 2026</div>
-    <div style="display:flex;gap:12px;margin-bottom:14px;flex-wrap:wrap;align-items:center">
-      <span class="month-badge" id="tarifaMes">📅 Marzo / Abril 2026</span>
-      <div class="toggle-group">
-        <button class="toggle-btn active" onclick="setTarifaMes('actual',this)">Marzo–Abril</button>
-        <button class="toggle-btn" onclick="setTarifaMes('mayo',this)">Mayo en adelante</button>
+    <div class="card-title">💹 Aumento masivo (opcional)</div>
+    <div class="alert alert-amber" style="margin-bottom:14px">
+      <span class="alert-icon">💡</span>
+      <div>Aplicá un aumento general a <strong>todos los cursos</strong> del mes seleccionado. Podés usar porcentaje (%) o monto fijo ($). Los aumentos se aplican sobre los valores actuales.</div>
+    </div>
+
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px" id="aumentoGridWrap">
+      <!-- TRANSFERENCIA -->
+      <div style="background:#f3ecfa;border:1px solid #dbbff0;border-radius:8px;padding:16px">
+        <div style="font-weight:700;font-size:14px;color:#4B1A7A;margin-bottom:10px;display:flex;align-items:center;gap:6px">
+          🏦 Transferencia
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px">
+          <div>
+            <label>Tipo de aumento</label>
+            <select id="aumTrTipo">
+              <option value="porc">Porcentaje (%)</option>
+              <option value="monto">Monto fijo ($)</option>
+            </select>
+          </div>
+          <div>
+            <label>Valor</label>
+            <input type="number" id="aumTrVal" placeholder="Ej: 10 o 5000" value="0">
+          </div>
+        </div>
+      </div>
+
+      <!-- EFECTIVO -->
+      <div style="background:#eef7e5;border:1px solid #b8dc9f;border-radius:8px;padding:16px">
+        <div style="font-weight:700;font-size:14px;color:#375623;margin-bottom:10px;display:flex;align-items:center;gap:6px">
+          💵 Efectivo
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px">
+          <div>
+            <label>Tipo de aumento</label>
+            <select id="aumEfTipo">
+              <option value="porc">Porcentaje (%)</option>
+              <option value="monto">Monto fijo ($)</option>
+            </select>
+          </div>
+          <div>
+            <label>Valor</label>
+            <input type="number" id="aumEfVal" placeholder="Ej: 10 o 5000" value="0">
+          </div>
+        </div>
       </div>
     </div>
-    <div class="tariff-grid" id="tarifaGrid"></div>
-  </div>
-  <div class="card">
-    <div class="card-title">Descuentos</div>
-    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px">
-      <div style="background:var(--sand);border-radius:8px;padding:14px"><div style="font-size:20px;font-weight:700;color:var(--green)">−10%</div><div style="font-weight:600;margin-top:3px;font-size:13px">Pago en efectivo</div></div>
-      <div style="background:var(--sand);border-radius:8px;padding:14px"><div style="font-size:20px;font-weight:700;color:var(--sky)">−5%</div><div style="font-weight:600;margin-top:3px;font-size:13px">Descuento familiar</div></div>
-      <div style="background:var(--sand);border-radius:8px;padding:14px"><div style="font-size:20px;font-weight:700;color:var(--accent)">−5%</div><div style="font-weight:600;margin-top:3px;font-size:13px">Jubilados</div></div>
-      <div style="background:var(--sand);border-radius:8px;padding:14px"><div style="font-size:20px;font-weight:700;color:var(--accent)">−15%</div><div style="font-weight:600;margin-top:3px;font-size:13px">Empresas convenio</div></div>
+
+    <div class="btn-row">
+      <button class="btn btn-accent" onclick="aplicarAumentoMasivo()">✨ Aplicar aumento a todos los cursos</button>
+      <button class="btn btn-ghost" onclick="resetAumento()">↺ Limpiar valores</button>
     </div>
-    <div class="separator"></div>
-    <div class="section-label">Editar tarifas de Mayo</div>
-    <div class="form-grid" id="editTarifas"></div>
-    <div class="btn-row"><button class="btn btn-primary" onclick="guardarTarifasMayo()">💾 Guardar tarifas de Mayo</button></div>
+  </div>
+
+  <!-- Tarifas del mes (editable) -->
+  <div class="card">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;flex-wrap:wrap;gap:8px">
+      <div class="card-title" style="margin:0;border:none;padding:0">📋 Tarifas — <span id="tarMesLabel">Marzo 2026</span></div>
+      <span style="font-size:11px;color:var(--muted)">Podés ajustar cada valor manualmente</span>
+    </div>
+    <div class="tbl-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th style="min-width:200px">Curso / Nivel</th>
+            <th style="min-width:110px;background:#4B1A7A">🏦 Transferencia</th>
+            <th style="min-width:110px;background:#375623">💵 Efectivo</th>
+            <th style="min-width:110px">🎓 Matrícula</th>
+          </tr>
+        </thead>
+        <tbody id="tarBody"></tbody>
+      </table>
+    </div>
+    <div class="btn-row">
+      <button class="btn btn-primary" onclick="guardarTarifasMes()">💾 Guardar tarifas del mes</button>
+      <button class="btn btn-ghost" onclick="renderTarifas()">↺ Descartar cambios</button>
+    </div>
+  </div>
+
+  <!-- Descuentos vigentes -->
+  <div class="card">
+    <div class="card-title">🎁 Descuentos vigentes</div>
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px">
+      <div style="background:var(--sand);border-radius:8px;padding:14px">
+        <div style="font-size:20px;font-weight:700;color:var(--green)">−10%</div>
+        <div style="font-weight:600;margin-top:3px;font-size:13px">Pago en efectivo</div>
+        <div style="font-size:11px;color:var(--muted);margin-top:3px">Ya incluido en el precio</div>
+      </div>
+      <div style="background:var(--sand);border-radius:8px;padding:14px">
+        <div style="font-size:20px;font-weight:700;color:var(--sky)">−5%</div>
+        <div style="font-weight:600;margin-top:3px;font-size:13px">Descuento familiar</div>
+        <div style="font-size:11px;color:var(--muted);margin-top:3px">Familias con 2+ alumnos</div>
+      </div>
+      <div style="background:var(--sand);border-radius:8px;padding:14px">
+        <div style="font-size:20px;font-weight:700;color:var(--accent)">−5%</div>
+        <div style="font-weight:600;margin-top:3px;font-size:13px">Jubilados</div>
+      </div>
+      <div style="background:var(--sand);border-radius:8px;padding:14px">
+        <div style="font-size:20px;font-weight:700;color:var(--accent)">−15%</div>
+        <div style="font-weight:600;margin-top:3px;font-size:13px">Empresas convenio</div>
+      </div>
+    </div>
   </div>
 </div>
 
@@ -817,6 +933,7 @@ td{padding:9px 12px;vertical-align:middle}
 const STORAGE_KEY='lets_pagos_2026';
 const ALUMNOS_KEY='lets_alumnos_custom_2026';
 const TARIFAS_MAYO_KEY='lets_tarifas_mayo';
+const TARIFAS_MES_KEY='lets_tarifas_por_mes_2026';
 const RENT_KEY='lets_rentabilidad_2026';
 
 const $ = id => document.getElementById(id);
@@ -864,9 +981,28 @@ const TARIFAS_BASE = {
 };
 let tarifasMayo = loadJ(TARIFAS_MAYO_KEY) || JSON.parse(JSON.stringify(TARIFAS_BASE));
 
+// ──── NUEVA ESTRUCTURA: tarifas por cada mes individualmente ────
+// Formato: { 'Marzo': {curso: {matricula, transferencia, efectivo}}, 'Abril': {...}, ... }
+const MESES_TARIFA_ALL = ['Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
+let tarifasPorMes = loadJ(TARIFAS_MES_KEY);
+if(!tarifasPorMes){
+  // Migración inicial desde el sistema anterior
+  tarifasPorMes = {};
+  MESES_TARIFA_ALL.forEach(m=>{
+    if(m==='Marzo'||m==='Abril') tarifasPorMes[m] = JSON.parse(JSON.stringify(TARIFAS_BASE));
+    else tarifasPorMes[m] = JSON.parse(JSON.stringify(tarifasMayo));
+  });
+  saveJ(TARIFAS_MES_KEY, tarifasPorMes);
+}
+
 const MESES_TARIFA_NUEVA = ['Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
 function usaTarifaNueva(mes){ return MESES_TARIFA_NUEVA.includes(mes); }
-function getTarifasMes(mes){ return usaTarifaNueva(mes) ? tarifasMayo : TARIFAS_BASE; }
+function getTarifasMes(mes){
+  // Nueva estructura: cada mes tiene sus propias tarifas
+  if(tarifasPorMes && tarifasPorMes[mes]) return tarifasPorMes[mes];
+  // Fallback al sistema anterior por si acaso
+  return usaTarifaNueva(mes) ? tarifasMayo : TARIFAS_BASE;
+}
 
 function getTarifa(curso, mes){
   const tarifas = getTarifasMes(mes);
@@ -1040,7 +1176,16 @@ function showPage(name){
   if(name==='historial') renderHistorial();
   if(name==='morosos') renderMorosos();
   if(name==='rentabilidad') renderRentabilidad();
-  if(name==='tarifas') renderTarifas();
+  if(name==='tarifas'){
+    // Pre-seleccionar el mes actual si el selector está vacío
+    const sel=$('tarMes');
+    if(sel && !sel.value){
+      const mesHoy=mesActual();
+      if(MESES_TARIFA_ALL.includes(mesHoy)) sel.value=mesHoy;
+      else sel.value='Marzo';
+    }
+    renderTarifas();
+  }
   if(name==='haberes') renderHaberes();
   if(name==='talonario') renderTalonario();
 }
@@ -1910,47 +2055,108 @@ function exportRentCSV(){
   a.download=`lets_rentabilidad_${mes}_2026.csv`;a.click();
 }
 
-let tarifaViewing='actual';
-function setTarifaMes(mode,btn){
-  tarifaViewing=mode;
-  document.querySelectorAll('.toggle-btn').forEach(b=>b.classList.remove('active'));
-  btn.classList.add('active');
-  $('tarifaMes').textContent=mode==='actual'?'📅 Marzo / Abril 2026':'📅 Mayo 2026 en adelante';
-  renderTarifas();
-}
+// ──── NUEVO SISTEMA DE TARIFAS POR MES ────
+
 function renderTarifas(){
-  const tar=tarifaViewing==='actual'?TARIFAS_BASE:tarifasMayo;
-  let html=`<div class="tariff-header">Nivel / Curso</div><div class="tariff-header">Transferencia</div><div class="tariff-header">Efectivo</div>`;
-  Object.keys(TARIFAS_BASE).forEach((c,i)=>{
-    const t=tar[c]||TARIFAS_BASE[c];
-    const alt=i%2!==0?'':'tariff-row-alt';
-    html+=`<div class="tariff-cell level ${alt}" style="font-size:11px">${c}</div>
-           <div class="tariff-cell ${alt}">${fmt(t.transferencia)}</div>
-           <div class="tariff-cell ${alt}">${fmt(t.efectivo)}</div>`;
-  });
-  $('tarifaGrid').innerHTML=html;
-  const edit=Object.keys(TARIFAS_BASE).map(c=>{
-    const t=tarifasMayo[c]||TARIFAS_BASE[c];
-    const key=c.replace(/[^a-z0-9]/gi,'_');
-    return `<div class="form-row"><label style="font-size:10px">${c.substring(0,28)}</label>
-      <div style="display:flex;gap:6px">
-        <input type="number" id="mayo_transf_${key}" value="${t.transferencia}" style="width:50%">
-        <input type="number" id="mayo_efect_${key}" value="${t.efectivo}" style="width:50%">
-      </div></div>`;
+  const mes = $('tarMes').value || 'Marzo';
+  $('tarMesLabel').textContent = mes + ' 2026';
+  // Asegurar que existe la tarifa para ese mes
+  if(!tarifasPorMes[mes]) tarifasPorMes[mes] = JSON.parse(JSON.stringify(TARIFAS_BASE));
+  const tar = tarifasPorMes[mes];
+  const cursos = Object.keys(TARIFAS_BASE);
+  const body = cursos.map((c,i)=>{
+    const t = tar[c] || TARIFAS_BASE[c];
+    const key = c.replace(/[^a-z0-9]/gi,'_');
+    const bg = i%2===0 ? 'background:var(--sand)' : '';
+    return `<tr style="${bg}">
+      <td style="font-size:12px;font-weight:500">${c}</td>
+      <td><input type="number" id="tar_tr_${key}" value="${t.transferencia}" style="width:100px;text-align:right;font-weight:600;color:#4B1A7A"></td>
+      <td><input type="number" id="tar_ef_${key}" value="${t.efectivo}" style="width:100px;text-align:right;font-weight:600;color:#375623"></td>
+      <td><input type="number" id="tar_mat_${key}" value="${t.matricula}" style="width:100px;text-align:right;font-weight:600"></td>
+    </tr>`;
   }).join('');
-  $('editTarifas').innerHTML=edit;
+  $('tarBody').innerHTML = body;
 }
-function guardarTarifasMayo(){
-  Object.keys(TARIFAS_BASE).forEach(c=>{
-    const k=c.replace(/[^a-z0-9]/gi,'_');
-    const tr=parseInt($('mayo_transf_'+k)?.value||0);
-    const ef=parseInt($('mayo_efect_'+k)?.value||0);
-    tarifasMayo[c]={...TARIFAS_BASE[c],transferencia:tr,efectivo:ef};
+
+function guardarTarifasMes(){
+  const mes = $('tarMes').value;
+  if(!mes) return;
+  const cursos = Object.keys(TARIFAS_BASE);
+  const nuevaTarifa = {};
+  cursos.forEach(c=>{
+    const k = c.replace(/[^a-z0-9]/gi,'_');
+    const tr = parseInt($('tar_tr_'+k)?.value) || 0;
+    const ef = parseInt($('tar_ef_'+k)?.value) || 0;
+    const mat = parseInt($('tar_mat_'+k)?.value) || 0;
+    nuevaTarifa[c] = { transferencia: tr, efectivo: ef, matricula: mat };
   });
-  saveJ(TARIFAS_MAYO_KEY,tarifasMayo);
-  if(window.FS) FS.set('config','tarifas_mayo',tarifasMayo);
-  alert('✅ Tarifas de Mayo guardadas');
+  tarifasPorMes[mes] = nuevaTarifa;
+  saveJ(TARIFAS_MES_KEY, tarifasPorMes);
+  if(window.FS) FS.set('config','tarifas_por_mes', tarifasPorMes);
+  // Mantener compatibilidad con el sistema anterior: sincronizar tarifasMayo con Mayo
+  if(mes === 'Mayo'){
+    tarifasMayo = JSON.parse(JSON.stringify(nuevaTarifa));
+    saveJ(TARIFAS_MAYO_KEY, tarifasMayo);
+    if(window.FS) FS.set('config','tarifas_mayo', tarifasMayo);
+  }
+  alert(`✅ Tarifas de ${mes} 2026 guardadas`);
   renderTarifas();
+}
+
+function aplicarAumentoMasivo(){
+  const mes = $('tarMes').value;
+  if(!mes){ alert('Elegí un mes primero'); return; }
+  const trTipo = $('aumTrTipo').value;
+  const trVal = parseFloat($('aumTrVal').value) || 0;
+  const efTipo = $('aumEfTipo').value;
+  const efVal = parseFloat($('aumEfVal').value) || 0;
+  if(trVal === 0 && efVal === 0){ alert('Ingresá al menos un valor de aumento'); return; }
+  // Preview del aumento
+  const detalles = [];
+  if(trVal > 0) detalles.push(`Transferencia: +${trTipo==='porc'?trVal+'%':fmt(trVal)}`);
+  if(efVal > 0) detalles.push(`Efectivo: +${efTipo==='porc'?efVal+'%':fmt(efVal)}`);
+  if(!confirm(`¿Aplicar aumento a TODOS los cursos de ${mes}?\n\n${detalles.join('\n')}\n\nLos cambios se van a mostrar en pantalla pero no se guardan hasta que hagas clic en "Guardar tarifas del mes".`)) return;
+  const cursos = Object.keys(TARIFAS_BASE);
+  cursos.forEach(c=>{
+    const k = c.replace(/[^a-z0-9]/gi,'_');
+    const trInput = $('tar_tr_'+k);
+    const efInput = $('tar_ef_'+k);
+    if(trInput && trVal > 0){
+      const actual = parseFloat(trInput.value) || 0;
+      const nuevo = trTipo === 'porc' ? Math.round(actual * (1 + trVal/100)) : Math.round(actual + trVal);
+      trInput.value = nuevo;
+    }
+    if(efInput && efVal > 0){
+      const actual = parseFloat(efInput.value) || 0;
+      const nuevo = efTipo === 'porc' ? Math.round(actual * (1 + efVal/100)) : Math.round(actual + efVal);
+      efInput.value = nuevo;
+    }
+  });
+  // Reset los inputs de aumento
+  $('aumTrVal').value = 0;
+  $('aumEfVal').value = 0;
+  alert(`✅ Aumento aplicado en pantalla.\n\nRevisá los nuevos valores y hacé clic en "💾 Guardar tarifas del mes" para persistirlos.`);
+}
+
+function resetAumento(){
+  $('aumTrVal').value = 0;
+  $('aumEfVal').value = 0;
+  $('aumTrTipo').value = 'porc';
+  $('aumEfTipo').value = 'porc';
+}
+
+function copiarTarifasDeMes(){
+  const mesDestino = $('tarMes').value;
+  const mesOrigen = $('tarCopiarDe').value;
+  if(!mesOrigen){ alert('Elegí un mes origen'); return; }
+  if(mesOrigen === mesDestino){ alert('El mes origen y destino no pueden ser el mismo'); return; }
+  if(!tarifasPorMes[mesOrigen]){ alert('El mes origen no tiene tarifas cargadas'); return; }
+  if(!confirm(`¿Copiar las tarifas de ${mesOrigen} a ${mesDestino}?\n\nEsto sobrescribe cualquier valor actual de ${mesDestino}. Los cambios se muestran en pantalla y podés ajustarlos antes de guardar.`)) return;
+  const copia = JSON.parse(JSON.stringify(tarifasPorMes[mesOrigen]));
+  tarifasPorMes[mesDestino] = copia;
+  renderTarifas();
+  $('tarCopiarDe').value = '';
+  alert(`✅ Tarifas de ${mesOrigen} copiadas a ${mesDestino}.\n\nRevisá los valores y hacé clic en "💾 Guardar tarifas del mes" para confirmar.`);
 }
 
 function populateCursoSelects(){
@@ -2148,6 +2354,7 @@ async function loadDataFromFirebase(){
     const fsConfig=await FS.getAll('config');
     for(const cfg of fsConfig){
       if(cfg._id==='tarifas_mayo'){tarifasMayo={...cfg};delete tarifasMayo._id;saveJ(TARIFAS_MAYO_KEY,tarifasMayo);}
+      if(cfg._id==='tarifas_por_mes'){tarifasPorMes={...cfg};delete tarifasPorMes._id;saveJ(TARIFAS_MES_KEY,tarifasPorMes);}
       if(cfg._id==='haberes_cfg'){saveJ(HCFG,{...cfg,_id:undefined});}
     }
     const fsRent=await FS.getAll('rentabilidad');
