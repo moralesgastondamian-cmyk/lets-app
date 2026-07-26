@@ -1,7 +1,7 @@
 // ════════════════════════════════════════════════
 //  app.js — punto de entrada principal
 // ════════════════════════════════════════════════
-export const VERSION = '2.9.0';
+export const VERSION = '2.10.0';
 export const BUILD = '2026-07-14';
 
 import { $ } from './core/dom.js';
@@ -69,6 +69,7 @@ window.App = {
   guardarTarifasNuevas: Tarifas.guardarTarifasNuevas,
   aplicarAumento: Tarifas.aplicarAumento,
   renderRentabilidad: Rent.renderRentabilidad,
+  seleccionarMesRent: Rent.seleccionarMesRent,
   updateGasto: Rent.updateGasto,
   exportRentCSV: Rent.exportRentCSV,
   renderHaberes: Haberes.renderHaberes,
