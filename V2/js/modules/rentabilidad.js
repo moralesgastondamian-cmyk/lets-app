@@ -26,12 +26,31 @@ const MESES_ALQUILER_AJUSTE = ['Abril','Mayo','Junio','Julio','Agosto','Septiemb
 
 // Ingresos del mes (cuotas + matrículas de ese mes)
 function getIngresosMes(mes) {
+  // Cuotas del mes
   const cuotasMes = state.pagos.filter(p => p.mes === mes && p.concepto === 'Cuota mensual');
   const cuotasTr = cuotasMes.filter(p => p.forma === 'transferencia').reduce((s, p) => s + p.total, 0);
   const cuotasEf = cuotasMes.filter(p => p.forma === 'efectivo').reduce((s, p) => s + p.total, 0);
-  const matTotal = state.pagos.filter(p => p.concepto === 'Matrícula 2026' && p.fecha && MESES[new Date(p.fecha).getMonth()] === mes)
-    .reduce((s, p) => s + p.total, 0);
-  return { cuotasTr, cuotasEf, matTotal, total: cuotasTr + cuotasEf + matTotal };
+
+  // Matrículas del mes (por fecha de pago)
+  const matMes = state.pagos.filter(p => p.concepto === 'Matrícula 2026' && p.fecha && MESES[new Date(p.fecha).getMonth()] === mes);
+  const matTr = matMes.filter(p => p.forma === 'transferencia').reduce((s, p) => s + p.total, 0);
+  const matEf = matMes.filter(p => p.forma === 'efectivo').reduce((s, p) => s + p.total, 0);
+  const matTotal = matTr + matEf;
+
+  // Totales por forma de pago (cuotas + matrículas juntas)
+  const totalEf = cuotasEf + matEf;
+  const totalTr = cuotasTr + matTr;
+  const total = totalEf + totalTr;
+
+  // Porcentajes sobre el total del mes
+  const pctEf = total > 0 ? Math.round((totalEf / total) * 100) : 0;
+  const pctTr = total > 0 ? Math.round((totalTr / total) * 100) : 0;
+
+  // Cantidad de operaciones por forma
+  const nEf = cuotasMes.filter(p => p.forma === 'efectivo').length + matMes.filter(p => p.forma === 'efectivo').length;
+  const nTr = cuotasMes.filter(p => p.forma === 'transferencia').length + matMes.filter(p => p.forma === 'transferencia').length;
+
+  return { cuotasTr, cuotasEf, matTr, matEf, matTotal, totalEf, totalTr, pctEf, pctTr, nEf, nTr, total };
 }
 
 // Gastos del mes (guardados o base)
@@ -45,13 +64,26 @@ function getGastosMes(mes) {
   return state.rentData[mes];
 }
 
+let mesRentSel = null;
+
+export function seleccionarMesRent(mes) {
+  mesRentSel = mes;
+  renderRentabilidad();
+}
+
 export function renderRentabilidad() {
-  const sel = $('rentMes');
-  if (sel && sel.options.length === 0) {
-    sel.innerHTML = MESES_LECTIVOS.map(m => `<option value="${m}">${m} 2026</option>`).join('');
-    sel.value = MESES[new Date().getMonth()] || 'Marzo';
+  // Mes por defecto: el actual, o Marzo
+  if (!mesRentSel) mesRentSel = MESES[new Date().getMonth()] || 'Marzo';
+  if (!MESES_LECTIVOS.includes(mesRentSel)) mesRentSel = 'Marzo';
+  const mes = mesRentSel;
+
+  // Botones de mes
+  const cont = $('rentMesesBtns');
+  if (cont) {
+    cont.innerHTML = MESES_LECTIVOS.map(m =>
+      `<button class="mes-btn ${m === mes ? 'active' : ''}" onclick="App.seleccionarMesRent('${m}')">${m.slice(0, 3)}</button>`
+    ).join('');
   }
-  const mes = $('rentMes').value;
 
   const ingresos = getIngresosMes(mes);
   const gastos = getGastosMes(mes);
@@ -70,12 +102,32 @@ export function renderRentabilidad() {
     <div class="kpi ${resultado >= 0 ? 'green' : 'red'}"><div class="kpi-val small">${fmt(resultado)}</div><div class="kpi-label">Resultado neto</div></div>
     <div class="kpi ${resultado >= 0 ? 'green' : 'red'}"><div class="kpi-val">${margen}%</div><div class="kpi-label">Margen</div></div>`;
 
-  // Ingresos detalle
+  // Ingresos detalle — separado por forma de pago con porcentajes
   $('rentIngresos').innerHTML = `
-    <div class="rent-row"><span>Cuotas (Transferencia)</span><strong>${fmt(ingresos.cuotasTr)}</strong></div>
-    <div class="rent-row"><span>Cuotas (Efectivo)</span><strong>${fmt(ingresos.cuotasEf)}</strong></div>
-    <div class="rent-row"><span>Matrículas</span><strong>${fmt(ingresos.matTotal)}</strong></div>
-    <div class="rent-row total"><span>Total ingresos</span><strong>${fmt(ingresos.total)}</strong></div>`;
+    <div class="ingreso-forma efectivo">
+      <div class="if-top">
+        <div class="if-label">💵 Efectivo</div>
+        <div class="if-pct">${ingresos.pctEf}%</div>
+      </div>
+      <div class="if-monto">${fmt(ingresos.totalEf)}</div>
+      <div class="if-detalle">${ingresos.nEf} operaci${ingresos.nEf === 1 ? 'ón' : 'ones'} · Cuotas ${fmt(ingresos.cuotasEf)} · Matrículas ${fmt(ingresos.matEf)}</div>
+    </div>
+
+    <div class="ingreso-forma transferencia">
+      <div class="if-top">
+        <div class="if-label">🏦 Transferencia</div>
+        <div class="if-pct">${ingresos.pctTr}%</div>
+      </div>
+      <div class="if-monto">${fmt(ingresos.totalTr)}</div>
+      <div class="if-detalle">${ingresos.nTr} operaci${ingresos.nTr === 1 ? 'ón' : 'ones'} · Cuotas ${fmt(ingresos.cuotasTr)} · Matrículas ${fmt(ingresos.matTr)}</div>
+    </div>
+
+    <div class="ingreso-barra">
+      <div class="ib-ef" style="width:${ingresos.pctEf}%" title="Efectivo ${ingresos.pctEf}%"></div>
+      <div class="ib-tr" style="width:${ingresos.pctTr}%" title="Transferencia ${ingresos.pctTr}%"></div>
+    </div>
+
+    <div class="rent-row total" style="margin-top:12px"><span>Total ingresos</span><strong>${fmt(ingresos.total)}</strong></div>`;
 
   // Egresos detalle (editables)
   $('rentEgresos').innerHTML = gastos.map((g, i) => {
@@ -106,7 +158,7 @@ export function updateGasto(mes, idx) {
 }
 
 export function exportRentCSV() {
-  const mes = $('rentMes').value;
+  const mes = mesRentSel || (MESES[new Date().getMonth()] || 'Marzo');
   const ingresos = getIngresosMes(mes);
   const gastos = getGastosMes(mes);
   const rows = [
