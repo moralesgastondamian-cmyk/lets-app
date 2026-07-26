@@ -1,7 +1,7 @@
 // ════════════════════════════════════════════════
 //  app.js — punto de entrada principal
 // ════════════════════════════════════════════════
-export const VERSION = '2.10.0';
+export const VERSION = '2.11.0';
 export const BUILD = '2026-07-14';
 
 import { $ } from './core/dom.js';
@@ -73,11 +73,16 @@ window.App = {
   updateGasto: Rent.updateGasto,
   exportRentCSV: Rent.exportRentCSV,
   renderHaberes: Haberes.renderHaberes,
-  haberesSetHoras: Haberes.haberesSetHoras,
-  haberesAgregarExtra: Haberes.haberesAgregarExtra,
-  haberesQuitarExtra: Haberes.haberesQuitarExtra,
-  haberesComprobante: Haberes.haberesComprobante,
-  exportHaberesCSV: Haberes.exportHaberesCSV,
+  seleccionarMesHab: Haberes.seleccionarMesHab,
+  toggleClase: Haberes.toggleClase,
+  updateHorasClase: Haberes.updateHorasClase,
+  agregarFeriado: Haberes.agregarFeriado,
+  quitarFeriado: Haberes.quitarFeriado,
+  agregarExtraHaber: Haberes.agregarExtraHaber,
+  quitarExtraHaber: Haberes.quitarExtraHaber,
+  scrollDocente: Haberes.scrollDocente,
+  comprobanteHaber: Haberes.comprobanteHaber,
+  enviarHaberWhatsApp: Haberes.enviarHaberWhatsApp,
   renderTalonario: Talonario.renderTalonario,
   imprimirTalonario: Talonario.imprimirTalonario,
 };
