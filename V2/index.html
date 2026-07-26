@@ -246,20 +246,28 @@
 </div>
 <div class="page" id="page-haberes">
   <div class="card">
-    <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;margin-bottom:14px">
-      <div class="card-title" style="margin:0">👩‍🏫 Haberes Docentes</div>
-      <select id="habMes" onchange="App.renderHaberes()" style="max-width:160px"></select>
-    </div>
-    <div class="hab-total-general">
-      <span class="lbl">Total a pagar (todos los docentes)</span>
-      <span class="val" id="habTotalGeneral">$0</span>
-    </div>
-    <div id="habList"></div>
-    <div class="btn-row">
-      <button class="btn btn-ghost" onclick="App.exportHaberesCSV()" style="padding:10px 16px;font-size:13px">📥 Exportar CSV</button>
-    </div>
+    <div class="card-title">👩‍🏫 Haberes Docentes</div>
+    <div id="habMesesBtns" class="meses-btns"></div>
   </div>
+
+  <div class="card">
+    <div class="card-title">Resumen del mes</div>
+    <div id="habResumen"></div>
+  </div>
+
+  <div class="card">
+    <div class="card-title">Feriados / días no laborables</div>
+    <p style="color:var(--muted);font-size:13px;margin-bottom:10px">Las clases de estos días no se pagan a ningún docente.</p>
+    <div style="display:flex;gap:8px;align-items:flex-end;flex-wrap:wrap;margin-bottom:12px">
+      <div class="form-row" style="margin:0"><label>Agregar feriado</label><input type="date" id="habFeriadoFecha"></div>
+      <button class="btn btn-ghost" onclick="App.agregarFeriado()">➕ Agregar</button>
+    </div>
+    <div id="habNoLab" style="display:flex;flex-wrap:wrap;gap:6px"></div>
+  </div>
+
+  <div id="habDocentes"></div>
 </div>
+
 <div class="page" id="page-talonario">
   <div class="card">
     <div class="card-title">🖨 Talonario de comprobantes</div>

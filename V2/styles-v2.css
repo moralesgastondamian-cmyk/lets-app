@@ -312,3 +312,46 @@ input[type=file]{padding:10px;font-size:13px;background:var(--cream)}
 .ingreso-barra{display:flex;height:14px;border-radius:7px;overflow:hidden;margin:4px 0 2px;background:var(--cream)}
 .ib-ef{background:#5a9c3e;transition:width .4s}
 .ib-tr{background:#7b3fa0;transition:width .4s}
+
+/* ── HABERES (rediseño calendario) ── */
+.hab-resumen-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:10px;margin-bottom:14px}
+.hab-res-card{background:var(--cream);border:1px solid var(--border);border-radius:var(--rs);padding:14px;text-align:center;cursor:pointer;transition:all .15s}
+.hab-res-card:hover{border-color:var(--sky);transform:translateY(-2px)}
+.hab-res-nombre{font-weight:700;font-size:14px;color:var(--navy)}
+.hab-res-horas{font-size:11px;color:var(--muted);margin:4px 0}
+.hab-res-monto{font-family:'DM Serif Display',serif;font-size:20px;color:var(--navy)}
+.hab-total-general{display:flex;justify-content:space-between;align-items:center;background:var(--navy);color:#fff;border-radius:var(--rs);padding:14px 18px;margin-top:6px}
+.hab-total-general strong{font-family:'DM Serif Display',serif;font-size:22px}
+
+.hab-docente{background:#fff;border:1px solid var(--border);border-radius:var(--r);margin-bottom:14px;overflow:hidden;box-shadow:var(--shadow)}
+.hab-doc-header{display:flex;justify-content:space-between;align-items:center;background:var(--navy);color:#fff;padding:12px 18px}
+.hab-doc-nombre{font-weight:700;font-size:16px}
+.hab-doc-total{font-family:'DM Serif Display',serif;font-size:20px;color:var(--gold)}
+.hab-doc-body{padding:16px 18px}
+
+.curso-block{margin-bottom:14px}
+.curso-title{font-weight:600;font-size:13px;color:var(--navy);margin-bottom:6px}
+.curso-dias{font-size:11px;color:var(--sky);font-weight:600;margin-left:6px}
+.clase-row{display:flex;align-items:center;gap:8px;padding:4px 0;border-bottom:1px solid var(--cream);font-size:12px}
+.clase-check{display:flex;align-items:center;gap:6px;cursor:pointer;flex:1;margin:0;text-transform:none;letter-spacing:0;font-weight:500}
+.clase-check input{width:16px;height:16px;accent-color:var(--green);margin:0}
+.clase-check .ausente{color:var(--muted);text-decoration:line-through}
+.clase-horas{width:52px;padding:3px 4px;border:1.5px solid var(--border);border-radius:5px;font-size:12px;text-align:center}
+.clase-h-lbl{font-size:10px;color:var(--muted)}
+.clase-monto{font-size:12px;font-weight:600;min-width:64px;text-align:right;color:var(--navy)}
+.clase-monto.ausente{color:var(--muted)}
+.curso-subtotal{font-size:11px;color:var(--muted);text-align:right;margin-top:4px;font-weight:600}
+
+.hab-extras{background:var(--cream);border-radius:var(--rs);padding:12px;margin:12px 0}
+.hab-extras-title{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--muted);margin-bottom:8px}
+.extra-row{display:flex;align-items:center;gap:10px;padding:5px 0;font-size:13px}
+.extra-row span{flex:1}
+.extra-row strong{color:var(--green)}
+.extra-row strong.neg{color:var(--red)}
+
+.hab-doc-resumen{border-top:2px solid var(--sand);padding-top:10px;margin-top:6px}
+.hdr-line{display:flex;justify-content:space-between;font-size:13px;padding:3px 0}
+.hdr-line .neg{color:var(--red)}
+.hdr-line.total{font-weight:700;font-size:15px;color:var(--navy);border-top:1px solid var(--sand);padding-top:8px;margin-top:4px}
+
+.nolab{display:inline-block;background:#fef0d0;color:#7a5010;font-size:12px;font-weight:600;padding:4px 10px;border-radius:20px}
