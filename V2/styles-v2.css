@@ -291,3 +291,24 @@ input[type=file]{padding:10px;font-size:13px;background:var(--cream)}
 .lb-google:hover{background:var(--cream);border-color:var(--muted)}
 .lb-google:disabled{opacity:.6;cursor:default}
 .g-icon{display:inline-flex;align-items:center;justify-content:center;width:22px;height:22px;border-radius:50%;background:#4285f4;color:#fff;font-weight:700;font-size:14px}
+
+/* ── SELECTOR DE MESES (botones) ── */
+.meses-btns{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:4px}
+.mes-btn{padding:8px 14px;border:1.5px solid var(--border);border-radius:8px;background:#fff;color:var(--muted);font-family:inherit;font-size:13px;font-weight:600;cursor:pointer;transition:all .15s}
+.mes-btn:hover{border-color:var(--sky);color:var(--text)}
+.mes-btn.active{background:var(--navy);color:#fff;border-color:var(--navy)}
+
+/* ── INGRESOS POR FORMA DE PAGO ── */
+.ingreso-forma{border-radius:var(--rs);padding:14px 16px;margin-bottom:10px}
+.ingreso-forma.efectivo{background:#e8f3e0;border:1px solid #c4e0b4}
+.ingreso-forma.transferencia{background:#ede0f5;border:1px solid #d5c0e8}
+.if-top{display:flex;justify-content:space-between;align-items:center}
+.if-label{font-weight:700;font-size:14px}
+.if-pct{font-family:'DM Serif Display',serif;font-size:22px}
+.ingreso-forma.efectivo .if-pct{color:#375623}
+.ingreso-forma.transferencia .if-pct{color:#4B1A7A}
+.if-monto{font-family:'DM Serif Display',serif;font-size:26px;color:var(--navy);margin-top:2px}
+.if-detalle{font-size:11px;color:var(--muted);margin-top:4px}
+.ingreso-barra{display:flex;height:14px;border-radius:7px;overflow:hidden;margin:4px 0 2px;background:var(--cream)}
+.ib-ef{background:#5a9c3e;transition:width .4s}
+.ib-tr{background:#7b3fa0;transition:width .4s}
