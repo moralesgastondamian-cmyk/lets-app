@@ -6,6 +6,9 @@ import {
   getFirestore, collection, doc, setDoc, getDoc, getDocs,
   onSnapshot, deleteDoc
 } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js';
+import {
+  getAuth, GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged
+} from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js';
 
 const firebaseConfig = {
   apiKey: "AIzaSyCQMtW7We78GUEVidJDcd-DUU2bWDKChSg",
@@ -56,4 +59,34 @@ export function showSyncStatus(s) {
   if (s === 'syncing')   { el.style.background = '#1a3a6b'; el.style.color = '#fff'; el.textContent = '🔄 Sincronizando...'; }
   else if (s === 'ok')   { el.style.background = '#2d9a6b'; el.style.color = '#fff'; el.textContent = '✅ Sincronizado'; setTimeout(() => el.style.opacity = '0', 2000); }
   else                   { el.style.background = '#c0392b'; el.style.color = '#fff'; el.textContent = '⚠️ Sin conexión — guardado local'; setTimeout(() => el.style.opacity = '0', 4000); }
+}
+
+// ════════════════════════════════════════════════
+//  Autenticación con Google
+// ════════════════════════════════════════════════
+let _auth = null;
+try {
+  _auth = getAuth(app);
+} catch (e) {
+  console.warn('Auth no disponible:', e);
+}
+
+// Iniciar sesión con Google (abre el popup de Google)
+export async function loginConGoogle() {
+  if (!_auth) throw new Error('Auth no inicializado');
+  const provider = new GoogleAuthProvider();
+  provider.setCustomParameters({ prompt: 'select_account' }); // siempre pregunta qué cuenta
+  const cred = await signInWithPopup(_auth, provider);
+  return cred.user; // { email, displayName, uid, ... }
+}
+
+// Cerrar sesión de Google
+export async function logoutGoogle() {
+  if (_auth) { try { await signOut(_auth); } catch (e) {} }
+}
+
+// Escuchar cambios de sesión (si ya había una sesión de Google activa)
+export function onGoogleAuth(callback) {
+  if (!_auth) return;
+  onAuthStateChanged(_auth, callback);
 }

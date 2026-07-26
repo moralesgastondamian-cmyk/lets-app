@@ -2,8 +2,9 @@
 //  core/auth.js — login, usuarios, sesión, auditoría
 // ════════════════════════════════════════════════
 import { $, today } from './dom.js';
-import { FS } from './firebase.js';
+import { FS, loginConGoogle, logoutGoogle } from './firebase.js';
 import { KEYS, loadJ, saveJ, state } from './store.js';
+import { buscarAutorizado } from '../data/autorizados.js';
 
 // ── Hash de contraseña (sincrónico, sin dependencias) ──
 export function hp(p) {
@@ -83,6 +84,64 @@ export async function doLogin() {
     showLE('Error de conexión — intentá de nuevo');
   } finally {
     $('LU').disabled = false; $('LP').disabled = false;
+  }
+}
+
+
+// ── Login con Google (verifica contra la lista blanca) ──
+export async function doLoginGoogle() {
+  const btn = $('btnGoogle');
+  if (btn) { btn.disabled = true; btn.textContent = 'Conectando...'; }
+  try {
+    const user = await loginConGoogle();               // abre el popup de Google
+    const autorizado = buscarAutorizado(user.email);   // ¿está en la lista blanca?
+
+    if (!autorizado) {
+      await logoutGoogle();                            // no está: lo sacamos
+      showLE('El correo ' + user.email + ' no está autorizado');
+      return;
+    }
+
+    // Buscar si ya tiene un usuario en el sistema (por mail), o crear la sesión al vuelo
+    const users = loadJ(KEYS.USERS) || [];
+    let u = users.find(x => (x.email || '').toLowerCase() === user.email.toLowerCase());
+
+    if (!u) {
+      // Crear un usuario asociado a ese mail la primera vez
+      const accAdmin = ['dashboard','alumnos','cobrar','historial','morosos','rentabilidad','tarifas','haberes','talonario','respaldo','auditoria','usuarios','canDelete'];
+      const accCajero = ['dashboard','cobrar','historial','morosos'];
+      u = {
+        id: 'g_' + user.uid.slice(0, 12),
+        n: autorizado.nombre || user.displayName || user.email,
+        u: user.email,
+        email: user.email,
+        r: autorizado.rol,
+        a: autorizado.rol === 'admin' ? accAdmin : accCajero,
+        on: 1,
+        google: 1
+      };
+      users.push(u);
+      saveJ(KEYS.USERS, users);
+      if (FS) { try { await FS.set('usuarios', u.id, u); } catch (e) {} }
+    }
+
+    if ((u.on !== undefined ? u.on : 1) !== 1) { showLE('Tu usuario está desactivado'); await logoutGoogle(); return; }
+
+    state.CU = u;
+    saveJ(KEYS.SESS, { id: u.id, ts: Date.now(), google: 1 });
+    logA('LOGIN', 'Inicio de sesión con Google', user.email);
+    window.dispatchEvent(new CustomEvent('login-ok'));
+  } catch (e) {
+    console.error('Login Google error:', e);
+    if (e.code === 'auth/popup-closed-by-user') {
+      showLE('Cerraste la ventana de Google antes de terminar');
+    } else if (e.code === 'auth/unauthorized-domain') {
+      showLE('Este dominio no está autorizado en Firebase todavía');
+    } else {
+      showLE('No se pudo entrar con Google — probá de nuevo');
+    }
+  } finally {
+    if (btn) { btn.disabled = false; btn.innerHTML = '<span style="font-size:18px">G</span> Entrar con Google'; }
   }
 }
 
