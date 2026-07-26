@@ -58,6 +58,7 @@ export function showSyncStatus(s) {
   el.style.opacity = '1';
   if (s === 'syncing')   { el.style.background = '#1a3a6b'; el.style.color = '#fff'; el.textContent = '🔄 Sincronizando...'; }
   else if (s === 'ok')   { el.style.background = '#2d9a6b'; el.style.color = '#fff'; el.textContent = '✅ Sincronizado'; setTimeout(() => el.style.opacity = '0', 2000); }
+  else if (s === 'sin-nube') { el.style.background = '#e8a020'; el.style.color = '#fff'; el.textContent = '☁️ Entrá con Google para sincronizar'; setTimeout(() => el.style.opacity = '0', 5000); }
   else                   { el.style.background = '#c0392b'; el.style.color = '#fff'; el.textContent = '⚠️ Sin conexión — guardado local'; setTimeout(() => el.style.opacity = '0', 4000); }
 }
 

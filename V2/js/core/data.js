@@ -59,7 +59,12 @@ export async function loadFirebase() {
     showSyncStatus('ok');
   } catch (e) {
     console.error('loadFirebase error:', e);
-    showSyncStatus('error');
+    // Si el error es por permisos (reglas cerradas + login casero), avisar claramente
+    if (e && (e.code === 'permission-denied' || String(e).includes('permission'))) {
+      showSyncStatus('sin-nube');
+    } else {
+      showSyncStatus('error');
+    }
   }
 }
 
