@@ -219,31 +219,62 @@
 </div>
 <div class="page" id="page-tarifas">
   <div class="card">
-    <div class="card-title">💰 Tarifas 2026</div>
-    <div class="toggle-group">
-      <button class="toggle-btn active" data-modo="actual" onclick="App.setTarifaVista('actual')">Marzo–Abril</button>
-      <button class="toggle-btn" data-modo="nueva" onclick="App.setTarifaVista('nueva')">Mayo en adelante</button>
-    </div>
-    <div class="month-badge" id="tarifaMesLabel">📅 Marzo / Abril 2026</div>
-    <div class="tarifa-head"><div>Curso</div><div>Transferencia</div><div>Efectivo</div></div>
-    <div id="tarifaGrid" style="border:1px solid var(--border);border-top:none;border-radius:0 0 8px 8px;overflow:hidden"></div>
+    <div class="card-title">💰 Tarifas por mes</div>
+    <div id="tarMesesBtns" class="meses-btns"></div>
   </div>
-  <div class="card" id="editTarifasWrap" style="display:none">
-    <div class="card-title">✏️ Editar tarifas (Mayo en adelante)</div>
-    <div style="background:var(--cream);border-radius:10px;padding:14px;margin-bottom:16px">
-      <label>Aumento porcentual masivo</label>
-      <div style="display:flex;gap:10px;align-items:center">
-        <input type="number" id="aumentoPct" placeholder="Ej: 15" style="max-width:120px">
-        <span style="color:var(--muted)">%</span>
-        <button class="btn btn-gold" onclick="App.aplicarAumento()" style="padding:10px 16px;font-size:13px">Aplicar a todas</button>
+
+  <div class="card">
+    <div class="card-title">Aumento general</div>
+    <p style="color:var(--muted);font-size:13px;margin-bottom:12px">Aplica a todos los cursos del mes elegido. Efectivo y transferencia son independientes.</p>
+
+    <div class="aum-block transferencia">
+      <div class="aum-label">🏦 Transferencia</div>
+      <div class="aum-controls">
+        <select id="aum_tipo_transferencia"><option value="porc">%</option><option value="monto">$ fijo</option></select>
+        <input type="number" id="aum_valor_transferencia" placeholder="Ej: 10 o 5000">
+        <button class="btn btn-primary" onclick="App.aplicarAumentoTarifa('transferencia')">Aplicar</button>
       </div>
     </div>
-    <div id="editTarifas" class="form-grid"></div>
-    <div class="btn-row">
-      <button class="btn btn-primary btn-block" onclick="App.guardarTarifasNuevas()">💾 Guardar tarifas</button>
+
+    <div class="aum-block efectivo">
+      <div class="aum-label">💵 Efectivo</div>
+      <div class="aum-controls">
+        <select id="aum_tipo_efectivo"><option value="porc">%</option><option value="monto">$ fijo</option></select>
+        <input type="number" id="aum_valor_efectivo" placeholder="Ej: 10 o 5000">
+        <button class="btn btn-primary" onclick="App.aplicarAumentoTarifa('efectivo')">Aplicar</button>
+      </div>
+    </div>
+
+    <div class="aum-block ambos">
+      <div class="aum-label">Ambas a la vez</div>
+      <div class="aum-controls">
+        <select id="aum_tipo_ambos"><option value="porc">%</option><option value="monto">$ fijo</option></select>
+        <input type="number" id="aum_valor_ambos" placeholder="Ej: 10 o 5000">
+        <button class="btn btn-ghost" onclick="App.aplicarAumentoTarifa('ambos')">Aplicar</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-title">Precios por curso</div>
+    <p style="color:var(--muted);font-size:13px;margin-bottom:12px">Editá cualquier precio a mano. El cambio se guarda solo y pisa el aumento general en ese curso.</p>
+    <div id="tarGrid" class="tar-grid"></div>
+  </div>
+
+  <div class="card">
+    <div class="card-title">Copiar de otro mes</div>
+    <div style="display:flex;gap:8px;align-items:flex-end;flex-wrap:wrap">
+      <div class="form-row" style="margin:0;flex:1"><label>Traer la tarifa de</label>
+        <select id="tarCopiarDesde">
+          <option value="">— elegí un mes —</option>
+          <option>Marzo</option><option>Abril</option><option>Mayo</option><option>Junio</option><option>Julio</option><option>Agosto</option><option>Septiembre</option><option>Octubre</option><option>Noviembre</option><option>Diciembre</option>
+        </select>
+      </div>
+      <button class="btn btn-ghost" onclick="App.copiarTarifaDesde()">📋 Copiar al mes actual</button>
     </div>
   </div>
 </div>
+
 <div class="page" id="page-haberes">
   <div class="card">
     <div class="card-title">👩‍🏫 Haberes Docentes</div>
