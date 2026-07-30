@@ -64,11 +64,24 @@ function getClasesDates(mes, ds) {
   return dates;
 }
 
+// ── Valores de hora por docente y mes (docente + administración) ──
+// Se guardan en data.valores[docN] = { vhDoc, vhAdm, horasAdm }
+// Si no hay valor cargado para ese mes, cae al valor global de la config (cfg.vh).
+function getValores(docN, data, cfg) {
+  const v = (data.valores && data.valores[docN]) || {};
+  return {
+    vhDoc: v.vhDoc != null ? v.vhDoc : cfg.vh,   // valor hora docente
+    vhAdm: v.vhAdm != null ? v.vhAdm : cfg.vh,   // valor hora administración
+    horasAdm: v.horasAdm != null ? v.horasAdm : 0, // horas administrativas del mes
+  };
+}
+
 // ── Cálculo del total de un docente en el mes ──
 function calcularDocente(doc, mes, data, cfg) {
   let totalHoras = 0;
   const clasesData = data.clases[doc.n] || {};
   const detalleCursos = [];
+  const val = getValores(doc.n, data, cfg);
 
   doc.cursos.forEach(curso => {
     const dates = getClasesDates(mes, curso.ds).filter(d => !(data.nl || []).includes(d));
@@ -85,11 +98,21 @@ function calcularDocente(doc, mes, data, cfg) {
     detalleCursos.push({ curso: curso.c, ds: curso.ds, horasCurso, clases });
   });
 
-  const montoHoras = totalHoras * cfg.vh;
+  // Horas de clase × valor docente
+  const montoHoras = totalHoras * val.vhDoc;
+  // Horas administrativas × valor administración
+  const montoAdm = val.horasAdm * val.vhAdm;
+  // Extras (bonos, descuentos)
   const extras = (data.extras && data.extras[doc.n]) || [];
   const totalExtras = extras.reduce((s, e) => s + (e.monto || 0), 0);
 
-  return { totalHoras, montoHoras, extras, totalExtras, total: montoHoras + totalExtras, detalleCursos };
+  return {
+    totalHoras, montoHoras,
+    horasAdm: val.horasAdm, montoAdm, vhDoc: val.vhDoc, vhAdm: val.vhAdm,
+    extras, totalExtras,
+    total: montoHoras + montoAdm + totalExtras,
+    detalleCursos
+  };
 }
 
 // ════════════════════════════════════════════════
@@ -149,13 +172,13 @@ export function renderHaberes() {
           <input type="number" value="${cl.h}" min="0" step="0.5"
             onchange="App.updateHorasClase('${doc.n}','${cl.fecha}','${dc.curso}',this.value)" class="clase-horas">
           <span class="clase-h-lbl">h</span>
-          <span class="clase-monto ${!cl.presente ? 'ausente' : ''}">${cl.presente ? fmt(cl.h * cfg.vh) : '−'}</span>
+          <span class="clase-monto ${!cl.presente ? 'ausente' : ''}">${cl.presente ? fmt(cl.h * r.vhDoc) : '−'}</span>
         </div>`).join('');
       return `
         <div class="curso-block">
           <div class="curso-title">${dc.curso} <span class="curso-dias">${diasStr}</span></div>
           ${filasHtml || '<div style="font-size:11px;color:var(--muted)">Sin clases este mes</div>'}
-          <div class="curso-subtotal">Subtotal: ${dc.horasCurso} h · ${fmt(dc.horasCurso * cfg.vh)}</div>
+          <div class="curso-subtotal">Subtotal: ${dc.horasCurso} h · ${fmt(dc.horasCurso * r.vhDoc)}</div>
         </div>`;
     }).join('');
 
@@ -173,6 +196,23 @@ export function renderHaberes() {
           <div class="hab-doc-total">${fmt(r.total)}</div>
         </div>
         <div class="hab-doc-body">
+          <div class="hab-valores">
+            <div class="hv-item">
+              <label>Valor hora docente</label>
+              <input type="number" value="${r.vhDoc}" min="0" step="500"
+                onchange="App.setValorHora('${doc.n}','vhDoc',this.value)">
+            </div>
+            <div class="hv-item">
+              <label>Valor hora administración</label>
+              <input type="number" value="${r.vhAdm}" min="0" step="500"
+                onchange="App.setValorHora('${doc.n}','vhAdm',this.value)">
+            </div>
+            <div class="hv-item">
+              <label>Horas administrativas del mes</label>
+              <input type="number" value="${r.horasAdm}" min="0" step="0.5"
+                onchange="App.setValorHora('${doc.n}','horasAdm',this.value)">
+            </div>
+          </div>
           ${cursosHtml}
           <div class="hab-extras">
             <div class="hab-extras-title">Conceptos extra</div>
@@ -180,7 +220,8 @@ export function renderHaberes() {
             <button class="btn btn-ghost btn-sm" onclick="App.agregarExtraHaber('${doc.n}')" style="margin-top:8px">➕ Agregar concepto</button>
           </div>
           <div class="hab-doc-resumen">
-            <div class="hdr-line"><span>Horas del mes</span><span>${r.totalHoras} h · ${fmt(r.montoHoras)}</span></div>
+            <div class="hdr-line"><span>Horas de clase</span><span>${r.totalHoras} h · ${fmt(r.montoHoras)}</span></div>
+            ${r.horasAdm > 0 ? `<div class="hdr-line"><span>Horas administración</span><span>${r.horasAdm} h · ${fmt(r.montoAdm)}</span></div>` : ''}
             ${r.totalExtras !== 0 ? `<div class="hdr-line"><span>Extras</span><span class="${r.totalExtras < 0 ? 'neg' : ''}">${r.totalExtras < 0 ? '−' : ''}${fmt(Math.abs(r.totalExtras))}</span></div>` : ''}
             <div class="hdr-line total"><span>Total ${doc.n}</span><span>${fmt(r.total)}</span></div>
           </div>
@@ -212,6 +253,19 @@ export function updateHorasClase(docN, fecha, curso, val) {
   const prev = data.clases[docN][key] || { presente: true };
   data.clases[docN][key] = { presente: prev.presente !== false, h: parseFloat(val) || 0 };
   saveHabData(mes, data); renderHaberes();
+}
+
+
+// ── Editar valores de hora (docente/admin) y horas admin por docente y mes ──
+export function setValorHora(docN, campo, val) {
+  const mes = mesHabSel, data = getHabData(mes);
+  if (!data.valores) data.valores = {};
+  if (!data.valores[docN]) data.valores[docN] = {};
+  data.valores[docN][campo] = parseFloat(val) || 0;
+  saveHabData(mes, data);
+  const nombres = { vhDoc: 'valor hora docente', vhAdm: 'valor hora admin', horasAdm: 'horas admin' };
+  logA('HABERES', `Actualizó ${nombres[campo] || campo} de ${docN} en ${mes}`, fmt(parseFloat(val) || 0));
+  renderHaberes();
 }
 
 export function agregarFeriado() {
@@ -305,8 +359,12 @@ function construirComprobante(docN) {
   });
 
   y += 2; pdf.setDrawColor(220, 216, 206); pdf.line(16, y, 132, y); y += 6;
-  pdf.text(`Total horas: ${r.totalHoras} h × ${fmt(cfg.vh)}`, 16, y);
+  pdf.text(`Horas clase: ${r.totalHoras} h × ${fmt(r.vhDoc)}`, 16, y);
   pdf.text(fmt(r.montoHoras), 132, y, { align: 'right' }); y += 6;
+  if (r.horasAdm > 0) {
+    pdf.text(`Horas admin.: ${r.horasAdm} h × ${fmt(r.vhAdm)}`, 16, y);
+    pdf.text(fmt(r.montoAdm), 132, y, { align: 'right' }); y += 6;
+  }
 
   if (r.extras && r.extras.length) {
     r.extras.forEach(e => {
