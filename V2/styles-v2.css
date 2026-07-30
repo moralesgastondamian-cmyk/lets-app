@@ -361,3 +361,21 @@ input[type=file]{padding:10px;font-size:13px;background:var(--cream)}
 .hv-item label{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.4px;color:var(--muted);margin-bottom:4px;display:block}
 .hv-item input{width:100%;padding:8px 10px;border:1.5px solid var(--border);border-radius:7px;font-size:14px;font-weight:600;color:var(--navy)}
 .hv-item input:focus{border-color:var(--sky);outline:none}
+
+/* ── TARIFAS por mes ── */
+.aum-block{border-radius:var(--rs);padding:12px 14px;margin-bottom:10px}
+.aum-block.transferencia{background:#ede0f5;border:1px solid #d5c0e8}
+.aum-block.efectivo{background:#e8f3e0;border:1px solid #c4e0b4}
+.aum-block.ambos{background:var(--cream);border:1px solid var(--border)}
+.aum-label{font-weight:700;font-size:13px;margin-bottom:8px}
+.aum-controls{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.aum-controls select{width:80px}
+.aum-controls input{flex:1;min-width:120px}
+
+.tar-grid{display:flex;flex-direction:column;gap:0}
+.tar-row{display:grid;grid-template-columns:1.6fr 1fr 1fr 1fr;gap:8px;align-items:center;padding:6px 4px}
+.tar-row.alt{background:var(--cream)}
+.tar-head{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.4px;color:var(--muted);border-bottom:2px solid var(--sand)}
+.tar-curso{font-size:12px;font-weight:600;color:var(--navy)}
+.tar-row input{width:100%;padding:6px 8px;border:1.5px solid var(--border);border-radius:6px;font-size:13px;text-align:right}
+.tar-row input:focus{border-color:var(--sky);outline:none}
