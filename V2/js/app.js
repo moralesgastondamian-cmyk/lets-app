@@ -1,7 +1,7 @@
 // ════════════════════════════════════════════════
 //  app.js — punto de entrada principal
 // ════════════════════════════════════════════════
-export const VERSION = '2.11.0';
+export const VERSION = '2.12.0';
 export const BUILD = '2026-07-14';
 
 import { $ } from './core/dom.js';
@@ -76,6 +76,7 @@ window.App = {
   seleccionarMesHab: Haberes.seleccionarMesHab,
   toggleClase: Haberes.toggleClase,
   updateHorasClase: Haberes.updateHorasClase,
+  setValorHora: Haberes.setValorHora,
   agregarFeriado: Haberes.agregarFeriado,
   quitarFeriado: Haberes.quitarFeriado,
   agregarExtraHaber: Haberes.agregarExtraHaber,
