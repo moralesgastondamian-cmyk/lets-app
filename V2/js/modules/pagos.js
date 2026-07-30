@@ -76,8 +76,14 @@ export function selectAlumno(id) {
   selectedAlumno = a;
   $('buscarAlumno').value = `${a.apellido}, ${a.nombre}`;
   $('alumnosList').style.display = 'none';
+  $('buscarAlumno').blur(); // baja el teclado en el celular
   $('alumnoInfo').style.display = 'block';
-  $('alumnoInfo').innerHTML = `<strong>${a.apellido}, ${a.nombre}</strong> · ${a.curso}${a.familiar ? ' · <span style="color:var(--sky)">🏷 Descuento familiar</span>' : ''}`;
+  $('alumnoInfo').innerHTML = `
+    <div class="alumno-sel">
+      <div class="alumno-sel-nombre">${a.apellido}, ${a.nombre}</div>
+      <div class="alumno-sel-curso">${a.curso}</div>
+      ${a.familiar ? '<span class="alumno-sel-tag">🏷 Descuento familiar</span>' : ''}
+    </div>`;
   calcularPrecio();
 }
 
