@@ -1,13 +1,13 @@
 // ════════════════════════════════════════════════
 //  app.js — punto de entrada principal
 // ════════════════════════════════════════════════
-export const VERSION = '2.14.0';
+export const VERSION = '2.15.0';
 export const BUILD = '2026-07-14';
 
 import { $ } from './core/dom.js';
 import { state } from './core/store.js';
 import { initUsers, trySession, doLogin, doLogout, migrarPermisos, doLoginGoogle } from './core/auth.js';
-import { buildTabs, showPage, firstPage } from './core/router.js';
+import { buildTabs, showPage, firstPage, abrirMenuMas, cerrarMenuMas } from './core/router.js';
 import { loadLocal, loadFirebase, listenPagos } from './core/data.js';
 
 import * as Pagos from './modules/pagos.js';
@@ -26,6 +26,8 @@ import * as Talonario from './modules/talonario.js';
 
 window.App = {
   doLoginGoogle: doLoginGoogle,
+  abrirMenuMas: abrirMenuMas,
+  cerrarMenuMas: cerrarMenuMas,
   buscarAlumno: Pagos.buscarAlumno,
   calcularPrecio: Pagos.calcularPrecio,
   registrarPago: Pagos.registrarPago,
