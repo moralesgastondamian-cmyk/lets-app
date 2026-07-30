@@ -355,3 +355,9 @@ input[type=file]{padding:10px;font-size:13px;background:var(--cream)}
 .hdr-line.total{font-weight:700;font-size:15px;color:var(--navy);border-top:1px solid var(--sand);padding-top:8px;margin-top:4px}
 
 .nolab{display:inline-block;background:#fef0d0;color:#7a5010;font-size:12px;font-weight:600;padding:4px 10px;border-radius:20px}
+
+/* ── VALORES DE HORA POR DOCENTE ── */
+.hab-valores{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;background:var(--cream);border-radius:var(--rs);padding:12px;margin-bottom:14px}
+.hv-item label{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.4px;color:var(--muted);margin-bottom:4px;display:block}
+.hv-item input{width:100%;padding:8px 10px;border:1.5px solid var(--border);border-radius:7px;font-size:14px;font-weight:600;color:var(--navy)}
+.hv-item input:focus{border-color:var(--sky);outline:none}
