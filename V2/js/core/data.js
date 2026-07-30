@@ -20,6 +20,7 @@ export function loadLocal() {
   state.pagos         = loadJ(KEYS.PAGOS) || [];
   state.alumnosCustom = loadJ(KEYS.ALUMNOS) || [];
   state.tarifasMayo   = loadJ(KEYS.TARIFAS_MAYO) || JSON.parse(JSON.stringify(TARIFAS_BASE));
+  state.tarifasMes    = loadJ(KEYS.TARIFAS_MES) || {};
   state.rentData      = loadJ(KEYS.RENT) || {};
   state.pagoCounter   = state.pagos.length ? Math.max(...state.pagos.map(p => p.id || 0)) + 1 : 1001;
   rebuildAlumnos();
@@ -45,6 +46,7 @@ export async function loadFirebase() {
     const fsConfig = await FS.getAll('config');
     for (const cfg of fsConfig) {
       if (cfg._id === 'tarifas_mayo') { const t = { ...cfg }; delete t._id; state.tarifasMayo = t; saveJ(KEYS.TARIFAS_MAYO, t); }
+      if (cfg._id === 'tarifas_mes') { const t = { ...cfg }; delete t._id; state.tarifasMes = t; saveJ(KEYS.TARIFAS_MES, t); }
       if (cfg._id === 'haberes_cfg')  { const c = { ...cfg }; delete c._id; saveJ(KEYS.HAB_CFG, c); }
     }
     const fsRent = await FS.getAll('rentabilidad');

@@ -7,6 +7,7 @@ export const KEYS = {
   PAGOS:        'lets_pagos_2026',
   ALUMNOS:      'lets_alumnos_custom_2026',
   TARIFAS_MAYO: 'lets_tarifas_mayo',
+  TARIFAS_MES:  'lets_tarifas_mes_2026',
   RENT:         'lets_rentabilidad_2026',
   HAB:          'lets_haberes_2026',
   HAB_CFG:      'lets_habcfg_2026',
@@ -31,7 +32,8 @@ export const state = {
   pagos: [],          // todos los pagos
   alumnosCustom: [],  // alumnos agregados/editados
   ALUMNOS: [],        // lista completa (base + custom)
-  tarifasMayo: {},    // tarifas actualizadas
+  tarifasMayo: {},    // tarifas actualizadas (modelo viejo, compat)
+  tarifasMes: {},     // tarifas por mes: { Marzo:{...}, Abril:{...}, ... }
   rentData: {},       // datos de rentabilidad
   pagoCounter: 1001,  // próximo número de recibo
 };
