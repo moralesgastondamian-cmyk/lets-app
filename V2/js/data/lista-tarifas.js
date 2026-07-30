@@ -27,12 +27,30 @@ export const TARIFAS_BASE = {
 };
 
 // Meses que usan la tarifa actualizada (Mayo en adelante)
+export const MESES_TARIFA = ['Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
+// Compatibilidad hacia atrás (algunos módulos aún lo importan)
 export const MESES_TARIFA_NUEVA = ['Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
 export function usaTarifaNueva(mes) { return MESES_TARIFA_NUEVA.includes(mes); }
 
-// Devuelve el set de tarifas correcto según el mes
+// Devuelve el set de tarifas para un mes puntual.
+// state.tarifasMes = { Marzo:{...}, Abril:{...}, ... } — una tabla por mes.
+// Si un mes no tiene tabla cargada, hereda del mes anterior que sí tenga, y si
+// ninguno tiene, cae a la tarifa base. Así los meses no configurados siguen andando.
 export function getTarifasMes(mes) {
-  return usaTarifaNueva(mes) ? (state.tarifasMayo || TARIFAS_BASE) : TARIFAS_BASE;
+  const porMes = state.tarifasMes || {};
+  if (porMes[mes] && Object.keys(porMes[mes]).length) return porMes[mes];
+
+  // Heredar del mes anterior configurado (hacia atrás en el calendario)
+  const idx = MESES_TARIFA.indexOf(mes);
+  for (let i = idx - 1; i >= 0; i--) {
+    const m = MESES_TARIFA[i];
+    if (porMes[m] && Object.keys(porMes[m]).length) return porMes[m];
+  }
+  // Compatibilidad: si venías del modelo viejo con tarifasMayo
+  if (state.tarifasMayo && usaTarifaNueva(mes) && Object.keys(state.tarifasMayo).length) {
+    return state.tarifasMayo;
+  }
+  return TARIFAS_BASE;
 }
 
 // Búsqueda central de tarifa con matching flexible
