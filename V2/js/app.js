@@ -1,7 +1,7 @@
 // ════════════════════════════════════════════════
 //  app.js — punto de entrada principal
 // ════════════════════════════════════════════════
-export const VERSION = '2.12.0';
+export const VERSION = '2.13.0';
 export const BUILD = '2026-07-14';
 
 import { $ } from './core/dom.js';
@@ -65,9 +65,10 @@ window.App = {
   renderMorosos,
   renderDashboard,
   renderTarifas: Tarifas.renderTarifas,
-  setTarifaVista: Tarifas.setTarifaVista,
-  guardarTarifasNuevas: Tarifas.guardarTarifasNuevas,
-  aplicarAumento: Tarifas.aplicarAumento,
+  seleccionarMesTar: Tarifas.seleccionarMesTar,
+  ajusteManualTarifa: Tarifas.ajusteManualTarifa,
+  aplicarAumentoTarifa: Tarifas.aplicarAumentoTarifa,
+  copiarTarifaDesde: Tarifas.copiarTarifaDesde,
   renderRentabilidad: Rent.renderRentabilidad,
   seleccionarMesRent: Rent.seleccionarMesRent,
   updateGasto: Rent.updateGasto,
