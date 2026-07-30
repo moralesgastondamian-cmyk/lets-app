@@ -379,3 +379,59 @@ input[type=file]{padding:10px;font-size:13px;background:var(--cream)}
 .tar-curso{font-size:12px;font-weight:600;color:var(--navy)}
 .tar-row input{width:100%;padding:6px 8px;border:1.5px solid var(--border);border-radius:6px;font-size:13px;text-align:right}
 .tar-row input:focus{border-color:var(--sky);outline:none}
+
+/* ══════════════════════════════════════════════ */
+/*  MEJORAS CELULAR — pantallas de uso diario       */
+/*  (registrar pago, historial, ficha, editar)      */
+/* ══════════════════════════════════════════════ */
+@media(max-width:760px){
+  /* Más aire abajo para no tapar con la barra de pestañas */
+  .page{padding:14px 14px 80px}
+
+  /* Campos y botones más altos: cómodos para el pulgar */
+  input,select{padding:15px 14px;font-size:16px}  /* 16px evita el zoom automático de iOS */
+  .btn{padding:15px 22px;font-size:16px}
+
+  /* Resultados de búsqueda de alumno: filas grandes y separadas */
+  #alumnosList{margin-top:8px;border:1px solid var(--border);border-radius:var(--rs);overflow:hidden;box-shadow:var(--shadow)}
+  .al-item{padding:14px 16px;border-bottom:1px solid var(--cream);cursor:pointer}
+  .al-item:last-child{border-bottom:none}
+  .al-item:active{background:var(--cream)}
+  .al-item strong{font-size:15px}
+  .al-item span{font-size:12px !important;margin-top:2px}
+
+  /* Detalle del precio más grande y legible */
+  .price-preview{padding:16px}
+  .price-line{font-size:15px;padding:8px 0}
+  .price-line.total{font-size:18px}
+  .price-line.total span:last-child{font-size:22px}
+
+  /* Botón de confirmar pago: bien grande y destacado */
+  #btnConfirmarPago,.btn-confirmar{font-size:17px;padding:17px;font-weight:700}
+
+  /* En el celular, los form-grid de a uno por fila (no apretados) */
+  .form-grid{grid-template-columns:1fr;gap:12px}
+
+  /* Tarjetas del historial: más separadas y con botones grandes */
+  .pago-card{padding:14px 16px}
+  .pago-acciones{gap:8px}
+  .btn-icon{width:42px;height:42px;font-size:18px}
+
+  /* Tarjetas de alumno: botones de acción más grandes */
+  .al-card{padding:16px}
+  .al-card-acciones .btn-icon{width:44px;height:44px;font-size:19px}
+  .al-card-nombre{font-size:16px}
+
+  /* Modales: ocupan casi toda la pantalla, más cómodos */
+  .modal{width:100%;max-width:none;margin:0;border-radius:16px 16px 0 0;max-height:92vh}
+  .modal-overlay{align-items:flex-end;padding:0}
+
+  /* Inputs dentro de modales también grandes */
+  .modal input,.modal select{padding:15px 14px;font-size:16px}
+}
+
+/* ── Alumno seleccionado en Registrar Pago ── */
+.alumno-sel{background:var(--cream);border-radius:var(--rs);padding:12px 14px;margin-bottom:14px;border-left:4px solid var(--gold)}
+.alumno-sel-nombre{font-weight:700;font-size:15px;color:var(--navy)}
+.alumno-sel-curso{font-size:13px;color:var(--muted);margin-top:2px}
+.alumno-sel-tag{display:inline-block;font-size:11px;color:var(--sky);margin-top:6px;font-weight:600}
