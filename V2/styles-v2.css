@@ -31,9 +31,8 @@ header{background:var(--navy);color:#fff;padding:0 18px;display:flex;align-items
 .tab{padding:14px 14px;font-weight:600;font-size:13px;cursor:pointer;border-bottom:3px solid transparent;color:var(--muted);white-space:nowrap;transition:.15s}
 .tab.active{color:var(--navy);border-bottom-color:var(--gold)}
 @media(max-width:760px){
-  .tabs{position:fixed;bottom:0;top:auto;left:0;right:0;border-top:1px solid var(--border);border-bottom:none;padding:0;justify-content:flex-start;box-shadow:0 -2px 12px rgba(15,31,61,.08);overflow-x:auto}
-  .tab{flex:0 0 auto;padding:10px 14px;font-size:11px;border-bottom:none;border-top:3px solid transparent;text-align:center}
-  .tab.active{border-top-color:var(--gold);background:var(--cream)}
+  /* La barra de pestañas de arriba se oculta en el celular (usamos la de abajo) */
+  .tabs{display:none}
 }
 
 /* ── LAYOUT ── */
@@ -435,3 +434,60 @@ input[type=file]{padding:10px;font-size:13px;background:var(--cream)}
 .alumno-sel-nombre{font-weight:700;font-size:15px;color:var(--navy)}
 .alumno-sel-curso{font-size:13px;color:var(--muted);margin-top:2px}
 .alumno-sel-tag{display:inline-block;font-size:11px;color:var(--sky);margin-top:6px;font-weight:600}
+
+/* ══════════════════════════════════════════════ */
+/*  NAVEGACIÓN MÓVIL: barra fija abajo + menú Más   */
+/* ══════════════════════════════════════════════ */
+.mobile-tabs{display:none}  /* oculta en PC */
+
+@media(max-width:760px){
+  .mobile-tabs{
+    display:flex;position:fixed;bottom:0;left:0;right:0;z-index:900;
+    background:#fff;border-top:1px solid var(--border);
+    box-shadow:0 -2px 14px rgba(15,31,61,.10);
+    padding-bottom:env(safe-area-inset-bottom,0); /* respeta el borde del iPhone */
+  }
+  .mtab{
+    flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;
+    gap:2px;padding:9px 2px 8px;font-size:10px;font-weight:600;color:var(--muted);
+    cursor:pointer;border-top:3px solid transparent;text-align:center;line-height:1.1;
+    min-height:54px
+  }
+  .mtab.active{color:var(--navy);border-top-color:var(--gold);background:var(--cream)}
+  .mtab-mas{font-size:18px}
+  .mtab-mas span{font-size:10px;font-weight:600}
+
+  /* El banner de versión va justo arriba de la barra móvil, sin tapar contenido */
+  .v2-banner{bottom:56px !important}
+
+  /* Espacio al final de cada página para que la barra no tape lo último */
+  .page{padding-bottom:96px}
+}
+
+/* Menú "Más" — se despliega desde abajo */
+.mas-menu{
+  display:none;position:fixed;inset:0;z-index:950;
+  background:rgba(15,31,61,.45);align-items:flex-end
+}
+.mas-menu-panel{
+  width:100%;background:#fff;border-radius:18px 18px 0 0;
+  max-height:80vh;overflow-y:auto;padding-bottom:env(safe-area-inset-bottom,12px);
+  animation:slideUp .22s ease
+}
+@keyframes slideUp{from{transform:translateY(100%)}to{transform:none}}
+.mas-menu-header{
+  display:flex;justify-content:space-between;align-items:center;
+  padding:18px 20px 12px;font-weight:700;font-size:16px;color:var(--navy);
+  border-bottom:1px solid var(--cream);position:sticky;top:0;background:#fff
+}
+.mas-menu-header button{
+  background:var(--cream);border:none;width:34px;height:34px;border-radius:50%;
+  font-size:16px;cursor:pointer;color:var(--muted)
+}
+.mas-menu-list{padding:8px 0 12px}
+.mas-item{
+  padding:15px 22px;font-size:16px;font-weight:500;color:var(--text);
+  cursor:pointer;border-bottom:1px solid var(--cream)
+}
+.mas-item:active{background:var(--cream)}
+.mas-item.active{color:var(--navy);font-weight:700;border-left:4px solid var(--gold)}

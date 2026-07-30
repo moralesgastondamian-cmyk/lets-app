@@ -509,6 +509,20 @@
   </div>
 </div>
 
+<!-- BARRA DE NAVEGACIÓN MÓVIL (solo celular) -->
+<div class="mobile-tabs"></div>
+
+<!-- MENÚ "MÁS" (celular) -->
+<div class="mas-menu" style="display:none" onclick="if(event.target===this)App.cerrarMenuMas()">
+  <div class="mas-menu-panel">
+    <div class="mas-menu-header">
+      <span>Todas las secciones</span>
+      <button onclick="App.cerrarMenuMas()">✕</button>
+    </div>
+    <div class="mas-menu-list"></div>
+  </div>
+</div>
+
 <div class="v2-banner">VERSIÓN MODULAR v2 — EN PRUEBAS · App oficial en /lets-app/</div>
 
 <!-- ══════════ ARRANQUE SEGURO ══════════ -->
