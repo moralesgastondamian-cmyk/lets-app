@@ -1,8 +1,8 @@
 // ════════════════════════════════════════════════
 //  app.js — punto de entrada principal
 // ════════════════════════════════════════════════
-export const VERSION = '2.15.0';
-export const BUILD = '2026-07-14';
+export const VERSION = '2.16.0';
+export const BUILD = '2026-07-30';
 
 import { $ } from './core/dom.js';
 import { state } from './core/store.js';
