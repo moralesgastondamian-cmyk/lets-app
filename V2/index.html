@@ -3,10 +3,40 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+<meta http-equiv="Pragma" content="no-cache">
+<meta http-equiv="Expires" content="0">
 <title>Let's — Gestión 2026 (v2)</title>
+
+<!-- ══ DETECTOR DE VERSIÓN (Capa 1) ══ -->
+<!-- Al cambiar APP_VERSION acá, todos los dispositivos limpian caché y recargan solos. -->
+<script>
+(function () {
+  var APP_VERSION = '2.16.0';  // ← subir este número en cada actualización
+  try {
+    var guardada = localStorage.getItem('lets_app_version');
+    if (guardada !== APP_VERSION) {
+      // Primera vez con esta versión en este dispositivo
+      localStorage.setItem('lets_app_version', APP_VERSION);
+      if (guardada !== null) {
+        // Había una versión anterior → limpiar caché y recargar una sola vez
+        if (window.caches && caches.keys) {
+          caches.keys().then(function (ks) {
+            return Promise.all(ks.map(function (k) { return caches.delete(k); }));
+          }).then(function () {
+            location.reload(true);
+          }).catch(function () { location.reload(true); });
+        } else {
+          location.reload(true);
+        }
+      }
+    }
+  } catch (e) { /* si localStorage falla, seguimos normal */ }
+})();
+</script>
 <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-<link rel="stylesheet" href="styles-v2.css">
+<link rel="stylesheet" href="styles-v2.css?v=2.16.0">
 <style>@media(max-width:760px){.rent-cols{grid-template-columns:1fr!important}}</style>
 </head>
 <body>
@@ -598,6 +628,6 @@ setTimeout(function () {
 }, 6000);
 </script>
 
-<script type="module" src="js/app.js"></script>
+<script type="module" src="js/app.js?v=2.16.0"></script>
 </body>
 </html>
