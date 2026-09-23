@@ -1,8 +1,8 @@
 // ════════════════════════════════════════════════
 //  app.js — punto de entrada principal
 // ════════════════════════════════════════════════
-export const VERSION = '2.16.0';
-export const BUILD = '2026-07-30';
+export const VERSION = '2.17.0';
+export const BUILD = '2026-09-23';
 
 import { $ } from './core/dom.js';
 import { state } from './core/store.js';
@@ -94,6 +94,9 @@ window.App = {
 function stampVersion() {
   const b = document.querySelector('.v2-banner');
   if (b) b.textContent = `VERSIÓN MODULAR v${VERSION} · build ${BUILD} — EN PRUEBAS`;
+  // La misma info, dentro del menú "Más" para el celular
+  const mv = document.getElementById('masMenuVersion');
+  if (mv) mv.textContent = `Versión modular v${VERSION} · build ${BUILD} — EN PRUEBAS`;
 }
 
 function initHeader() {
