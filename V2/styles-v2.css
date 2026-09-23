@@ -412,9 +412,19 @@ input[type=file]{padding:10px;font-size:13px;background:var(--cream)}
   .form-grid{grid-template-columns:1fr;gap:12px}
 
   /* Tarjetas del historial: más separadas y con botones grandes */
-  .pago-card{padding:14px 16px}
-  .pago-acciones{gap:8px}
-  .btn-icon{width:42px;height:42px;font-size:18px}
+  /* Tarjeta de pago: info + monto arriba, acciones en fila propia abajo */
+  .pago-card{grid-template-columns:1fr auto;padding:14px 16px}
+  .pago-acciones{
+    grid-column:1 / -1;           /* ocupa todo el ancho de la tarjeta */
+    display:flex;justify-content:space-between;gap:6px;
+    margin-top:10px;padding-top:12px;border-top:1px solid var(--cream);
+  }
+  .pago-acciones .btn-icon{
+    flex:1;                        /* los 5 iconos se reparten parejo */
+    height:44px;font-size:18px;
+    display:flex;align-items:center;justify-content:center;
+    padding:0;
+  }
 
   /* Tarjetas de alumno: botones de acción más grandes */
   .al-card{padding:16px}
