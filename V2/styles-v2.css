@@ -124,7 +124,7 @@ input:focus,select:focus{border-color:var(--sky)}
 
 /* ── BANNER V2 ── */
 .v2-banner{position:fixed;bottom:0;left:0;right:0;background:var(--gold);color:var(--navy);text-align:center;font-size:10px;font-weight:700;padding:3px;z-index:10001;letter-spacing:.5px}
-@media(max-width:760px){.v2-banner{bottom:54px}}
+@media(max-width:760px){.v2-banner{display:none}}
 
 /* ── ALUMNOS ── */
 .al-card{display:flex;justify-content:space-between;align-items:center;gap:12px;background:#fff;border:1px solid var(--border);border-radius:var(--rs);padding:14px 16px;margin-bottom:10px;box-shadow:var(--shadow)}
@@ -385,7 +385,7 @@ input[type=file]{padding:10px;font-size:13px;background:var(--cream)}
 /* ══════════════════════════════════════════════ */
 @media(max-width:760px){
   /* Más aire abajo para no tapar con la barra de pestañas */
-  .page{padding:14px 14px 80px}
+  .page{padding:14px 14px 76px}
 
   /* Campos y botones más altos: cómodos para el pulgar */
   input,select{padding:15px 14px;font-size:16px}  /* 16px evita el zoom automático de iOS */
@@ -457,11 +457,8 @@ input[type=file]{padding:10px;font-size:13px;background:var(--cream)}
   .mtab-mas{font-size:18px}
   .mtab-mas span{font-size:10px;font-weight:600}
 
-  /* El banner de versión va justo arriba de la barra móvil, sin tapar contenido */
-  .v2-banner{bottom:56px !important}
-
   /* Espacio al final de cada página para que la barra no tape lo último */
-  .page{padding-bottom:96px}
+  .page{padding-bottom:76px}
 }
 
 /* Menú "Más" — se despliega desde abajo */
@@ -491,3 +488,11 @@ input[type=file]{padding:10px;font-size:13px;background:var(--cream)}
 }
 .mas-item:active{background:var(--cream)}
 .mas-item.active{color:var(--navy);font-weight:700;border-left:4px solid var(--gold)}
+
+/* ── Versión dentro del menú "Más" (celular) ── */
+.mas-menu-version{
+  padding:14px 22px 18px;
+  font-size:11px;font-weight:600;color:var(--muted);
+  text-align:center;letter-spacing:.3px;
+  border-top:1px solid var(--cream);
+}
