@@ -12,7 +12,7 @@
 <!-- Al cambiar APP_VERSION acá, todos los dispositivos limpian caché y recargan solos. -->
 <script>
 (function () {
-  var APP_VERSION = '2.18.0';  // ← subir este número en cada actualización
+  var APP_VERSION = '2.19.0';  // ← subir este número en cada actualización
   try {
     var guardada = localStorage.getItem('lets_app_version');
     if (guardada !== APP_VERSION) {
@@ -36,7 +36,7 @@
 </script>
 <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-<link rel="stylesheet" href="styles-v2.css?v=2.18.0">
+<link rel="stylesheet" href="styles-v2.css?v=2.19.0">
 <style>@media(max-width:760px){.rent-cols{grid-template-columns:1fr!important}}</style>
 </head>
 <body>
@@ -507,6 +507,59 @@
   </div>
 </div>
 
+<!-- DOCENTES -->
+<div class="page" id="page-docentes">
+  <div class="card">
+    <div class="card-title">🧑‍🏫 Docentes y cursos</div>
+    <p style="color:var(--muted);font-size:13px;margin-bottom:14px">Administrá los docentes, sus cursos, días y horas. Estos datos alimentan el cálculo de Haberes.</p>
+    <div style="display:flex;gap:10px;align-items:flex-end;flex-wrap:wrap;margin-bottom:16px">
+      <div class="form-row" style="margin:0;max-width:220px">
+        <label>Valor hora general (por defecto)</label>
+        <input type="number" id="docValorHora" min="0" step="500">
+      </div>
+      <button class="btn btn-ghost" onclick="App.guardarValorHoraGeneral()">💾 Guardar valor</button>
+    </div>
+    <button class="btn btn-primary btn-block" onclick="App.nuevoDocente()">➕ Nuevo docente</button>
+  </div>
+
+  <div id="docentesList"></div>
+</div>
+
+<!-- MODAL DOCENTE -->
+<div class="modal-overlay" id="modalDocente" style="display:none">
+  <div class="modal" style="max-width:560px">
+    <div class="modal-title" id="mdTitulo">Nuevo docente</div>
+
+    <div class="form-row">
+      <label>Nombre del docente *</label>
+      <input type="text" id="md_nombre" placeholder="Ej: Juan Pérez">
+    </div>
+
+    <div class="form-row">
+      <label>Heredar cursos de otro docente (opcional)</label>
+      <div style="display:flex;gap:8px">
+        <select id="md_heredar" style="flex:1"></select>
+        <button class="btn btn-ghost btn-sm" onclick="App.heredarCursos()">Heredar</button>
+      </div>
+      <div style="font-size:11px;color:var(--muted);margin-top:4px">Útil para un reemplazo: copia todos los cursos del docente que elijas.</div>
+    </div>
+
+    <div class="separator"></div>
+    <div class="section-label">Cursos que dicta</div>
+    <div id="md_cursos"></div>
+
+    <div style="display:flex;gap:8px;margin-top:12px">
+      <select id="md_nuevoCurso" style="flex:1"></select>
+      <button class="btn btn-ghost btn-sm" onclick="App.agregarCursoEdit()">➕ Agregar</button>
+    </div>
+
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="App.cerrarModalDocente()">Cancelar</button>
+      <button class="btn btn-primary" onclick="App.guardarDocente()">💾 Guardar docente</button>
+    </div>
+  </div>
+</div>
+
 <!-- MODAL VER PAGO -->
 <div class="modal-overlay" id="modalVerPago" style="display:none">
   <div class="modal">
@@ -629,6 +682,6 @@ setTimeout(function () {
 }, 6000);
 </script>
 
-<script type="module" src="js/app.js?v=2.18.0"></script>
+<script type="module" src="js/app.js?v=2.19.0"></script>
 </body>
 </html>
