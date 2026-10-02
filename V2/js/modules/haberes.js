@@ -36,8 +36,8 @@ function defHabCfg() {
   };
 }
 
-function getHabCfg() { return loadJ(KEYS.HAB_CFG) || defHabCfg(); }
-function saveHabCfg(cfg) { saveJ(KEYS.HAB_CFG, cfg); if (FS) FS.set('config', 'haberes_cfg', cfg); }
+export function getHabCfg() { return loadJ(KEYS.HAB_CFG) || defHabCfg(); }
+export function saveHabCfg(cfg) { saveJ(KEYS.HAB_CFG, cfg); if (FS) FS.set('config', 'haberes_cfg', cfg); }
 
 function getHabData(mes) {
   const all = loadJ(KEYS.HAB) || {};
