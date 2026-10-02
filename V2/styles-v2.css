@@ -506,3 +506,25 @@ input[type=file]{padding:10px;font-size:13px;background:var(--cream)}
   text-align:center;letter-spacing:.3px;
   border-top:1px solid var(--cream);
 }
+
+/* ── DOCENTES ── */
+.doc-card{background:#fff;border:1px solid var(--border);border-radius:var(--r);padding:14px 16px;margin-bottom:12px;box-shadow:var(--shadow)}
+.doc-card-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px}
+.doc-card-nombre{font-weight:700;font-size:16px;color:var(--navy)}
+.doc-card-acciones{display:flex;gap:6px}
+.doc-cursos{display:flex;flex-direction:column;gap:6px}
+.doc-curso-chip{background:var(--cream);border-radius:7px;padding:8px 12px;font-size:13px;font-weight:600;color:var(--navy)}
+.doc-curso-chip span{color:var(--sky);font-weight:500;font-size:11px;margin-left:6px}
+
+/* Modal docente: cursos */
+.md-curso{background:var(--cream);border-radius:var(--rs);padding:12px;margin-bottom:10px}
+.md-curso-top{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px}
+.md-curso-nombre{font-weight:600;font-size:13px;color:var(--navy)}
+.md-curso-cfg{display:flex;justify-content:space-between;align-items:flex-end;gap:12px;flex-wrap:wrap}
+.md-dias{display:flex;gap:4px;flex-wrap:wrap}
+.md-dia{display:flex;flex-direction:column;align-items:center;font-size:10px;font-weight:600;color:var(--muted);cursor:pointer;border:1.5px solid var(--border);border-radius:6px;padding:4px 7px;background:#fff;text-transform:none;letter-spacing:0;margin:0;gap:2px}
+.md-dia.on{background:var(--navy);color:#fff;border-color:var(--navy)}
+.md-dia input{width:14px;height:14px;margin:0;accent-color:var(--gold)}
+.md-horas{display:flex;flex-direction:column;gap:3px}
+.md-horas label{font-size:10px;text-transform:uppercase;color:var(--muted);letter-spacing:.4px}
+.md-horas input{width:80px;padding:7px 9px;border:1.5px solid var(--border);border-radius:6px;font-size:13px;text-align:center}
