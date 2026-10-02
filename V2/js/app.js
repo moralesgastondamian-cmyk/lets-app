@@ -1,7 +1,7 @@
 // ════════════════════════════════════════════════
 //  app.js — punto de entrada principal
 // ════════════════════════════════════════════════
-export const VERSION = '2.18.0';
+export const VERSION = '2.19.0';
 export const BUILD = '2026-09-23';
 
 import { $ } from './core/dom.js';
@@ -22,6 +22,7 @@ import { renderDashboard } from './modules/dashboard.js';
 import * as Tarifas from './modules/tarifas.js';
 import * as Rent from './modules/rentabilidad.js';
 import * as Haberes from './modules/haberes.js';
+import * as Docentes from './modules/docentes.js';
 import * as Talonario from './modules/talonario.js';
 
 window.App = {
@@ -87,6 +88,18 @@ window.App = {
   scrollDocente: Haberes.scrollDocente,
   comprobanteHaber: Haberes.comprobanteHaber,
   enviarHaberWhatsApp: Haberes.enviarHaberWhatsApp,
+  renderDocentes: Docentes.renderDocentes,
+  guardarValorHoraGeneral: Docentes.guardarValorHoraGeneral,
+  nuevoDocente: Docentes.nuevoDocente,
+  editarDocente: Docentes.editarDocente,
+  quitarDocente: Docentes.quitarDocente,
+  heredarCursos: Docentes.heredarCursos,
+  agregarCursoEdit: Docentes.agregarCursoEdit,
+  quitarCursoEdit: Docentes.quitarCursoEdit,
+  toggleDiaCurso: Docentes.toggleDiaCurso,
+  setHorasCurso: Docentes.setHorasCurso,
+  guardarDocente: Docentes.guardarDocente,
+  cerrarModalDocente: Docentes.cerrarModalDocente,
   renderTalonario: Talonario.renderTalonario,
   imprimirTalonario: Talonario.imprimirTalonario,
 };
