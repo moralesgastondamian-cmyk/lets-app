@@ -14,6 +14,7 @@ const TABS = [
   ['rentabilidad', '📈 Rentabilidad'],
   ['tarifas',      '💰 Tarifas'],
   ['haberes',      '👩‍🏫 Haberes'],
+  ['docentes',     '🧑‍🏫 Docentes'],
   ['talonario',    '🖨 Talonario'],
   ['respaldo',     '💾 Respaldo'],
   ['auditoria',    '🔍 Auditoría'],
