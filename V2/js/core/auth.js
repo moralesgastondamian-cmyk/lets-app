@@ -19,11 +19,11 @@ export function hp(p) {
 }
 
 // ── Lista de accesos posibles ──
-export const ACCESOS = ['dashboard','alumnos','cobrar','historial','morosos','rentabilidad','tarifas','haberes','talonario','respaldo','auditoria','usuarios','canDelete'];
+export const ACCESOS = ['dashboard','alumnos','cobrar','historial','morosos','rentabilidad','tarifas','haberes','docentes','talonario','respaldo','auditoria','usuarios','canDelete'];
 
 // ── Usuarios por defecto (primer arranque) ──
 function defaultUsers() {
-  const accAdmin = ['dashboard','alumnos','cobrar','historial','morosos','rentabilidad','tarifas','haberes','talonario','respaldo','auditoria','usuarios','canDelete'];
+  const accAdmin = ['dashboard','alumnos','cobrar','historial','morosos','rentabilidad','tarifas','haberes','docentes','talonario','respaldo','auditoria','usuarios','canDelete'];
   return [
     { id:'u1', n:'Administrador 1', u:'admin1', h:hp('admin2026'), r:'admin', a:accAdmin, on:1 },
     { id:'u2', n:'Administrador 2', u:'admin2', h:hp('admin2026'), r:'admin', a:accAdmin, on:1 },
@@ -108,7 +108,7 @@ export async function doLoginGoogle() {
 
     if (!u) {
       // Crear un usuario asociado a ese mail la primera vez
-      const accAdmin = ['dashboard','alumnos','cobrar','historial','morosos','rentabilidad','tarifas','haberes','talonario','respaldo','auditoria','usuarios','canDelete'];
+      const accAdmin = ['dashboard','alumnos','cobrar','historial','morosos','rentabilidad','tarifas','haberes','docentes','talonario','respaldo','auditoria','usuarios','canDelete'];
       const accCajero = ['dashboard','cobrar','historial','morosos'];
       u = {
         id: 'g_' + user.uid.slice(0, 12),
@@ -175,7 +175,7 @@ export function trySession() {
 
 // ── Migración: agrega permisos nuevos a los admin existentes ──
 // (evita tener que borrar y recrear usuarios cuando sumamos una pestaña)
-const PERMISOS_NUEVOS = ['respaldo'];
+const PERMISOS_NUEVOS = ['respaldo', 'docentes'];
 export async function migrarPermisos() {
   if (!state.CU) return;
   const rol = state.CU.r || state.CU.rol;
